@@ -17,13 +17,9 @@ A modern, high-performance arcade Breakout experience engineered in **C++20** an
 | :---: | :---: |
 | ![Main Menu](assets/screenshots/demo_main_menu.png) | ![Stage Select](assets/screenshots/demo_stage_select.png) |
 
-| Skin Customizer | Settings & Options |
+| Settings & Presets | Stage 2: Neovim Green-Cyan Theme |
 | :---: | :---: |
-| ![Skin Customizer](assets/screenshots/demo_customize_menu.png) | ![Options Menu](assets/screenshots/demo_options_menu.png) |
-
-| Stage 2: Neovim Green-Cyan Theme | Stage 3: Gruvbox Theme |
-| :---: | :---: |
-| ![Neovim Palette](assets/screenshots/demo_gameplay_nvim.png) | ![Gruvbox Palette](assets/screenshots/demo_gameplay_gruvbox.png) |
+| ![Options Menu](assets/screenshots/demo_options_menu.png) | ![Neovim Palette](assets/screenshots/demo_gameplay_nvim.png) |
 
 ---
 
@@ -35,11 +31,10 @@ A modern, high-performance arcade Breakout experience engineered in **C++20** an
   - Six curated colorways: **Neon Arcade**, **Dark OLED**, **Gruvbox**, **Neovim** (cool green-cyan), **Game Boy**, and **Amber CRT**.
   - Configurable CRT scanline simulation.
 
-- **Paddle & Ball Cosmetics**:
-  - Selectable directly from the Main Menu (`CUSTOMIZE SKINS`) or in-game Settings.
-  - **Paddle Skins**: Street Skateboard (grip tape, kicktails, trucks & urethane wheels), Classic Arcade, Cyber Hovercraft, and Retro Wood.
-  - **Ball Cosmetics**: Energy Orb, Plasma Core, Neon Diamond, and Cyber Cube.
-  - Live animated preview stage in the customizer menu.
+- **Board & Ball Presets**:
+  - Selectable directly inside **Settings & Options**.
+  - **Board Presets**: Street Skateboard (grip tape, kicktails, trucks & urethane wheels), Classic Arcade, Cyber Hovercraft, and Retro Wood.
+  - **Ball Presets**: Energy Orb, Plasma Core, Neon Diamond, and Cyber Cube.
 
 - **Continuous Sub-Stepped Physics**:
   - 4 sub-steps per frame physics integration to eliminate tunneling at extreme ball speeds.
@@ -169,8 +164,8 @@ Breakout-game/
     │   ├── BitmapFont.h/cpp    # 8x8 bitmap font glyph table
     │   └── ParticleSystem.h/cpp# Software sparks, debris, and explosions
     ├── entities/
-    │   ├── Paddle.h/cpp        # Paddle skins (Skateboard, etc.) & blasters
-    │   ├── Ball.h/cpp          # Ball cosmetics, deflection math, and trails
+    │   ├── Paddle.h/cpp        # Board presets (Skateboard, Classic, Hover, Wood) & blasters
+    │   ├── Ball.h/cpp          # Ball presets (Energy Orb, Plasma, Diamond, Cube)
     │   ├── Brick.h/cpp         # Health, fracture stages, and bevel rendering
     │   ├── PowerUp.h/cpp       # Power-up items and active timers
     │   └── Laser.h/cpp         # Twin blasters

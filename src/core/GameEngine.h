@@ -96,7 +96,6 @@ private:
     void renderOverlays();
     void renderMainMenu();
     void renderLevelSelect();
-    void renderCustomizeMenu();
     void renderOptionsMenu();
     void renderHelpMenu();
     void renderPauseMenu();
@@ -128,7 +127,6 @@ private:
     int m_pauseMenuIndex = 0;
     int m_optionsMenuIndex = 0;
     int m_levelSelectIndex = 0;
-    int m_customizeMenuIndex = 0;
 
     // Modifiers & settings
     float m_difficultyMultiplier = 1.0f;

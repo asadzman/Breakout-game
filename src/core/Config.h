@@ -76,10 +76,9 @@ constexpr uint32_t BrickGold   = 0xFFFFB300;
 } // namespace Colors
 
 enum class GameState {
-    MainMenu,       // Retro title & main options: Start, Levels, Skins, Settings, Help, Quit
+    MainMenu,       // Retro title & main options: Start, Levels, Settings, Help, Quit
     LevelSelect,    // Interactive stage select with preview
-    CustomizeSkins, // Skateboard & ball skin customizer with live preview
-    OptionsMenu,    // Seamless in-game options: speed, lives, scanlines, theme, volume, mouse
+    OptionsMenu,    // In-game options: speed, lives, scanlines, theme, board/ball presets, audio, mouse
     HelpMenu,       // How to play & power-up guide
     Ready,       // Ball on paddle, waiting for Space/Launch
     Playing,     // Ball active
