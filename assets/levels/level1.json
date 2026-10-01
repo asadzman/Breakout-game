@@ -1,0 +1,25 @@
+{
+  "name": "STAGE 1: NEON HORIZON",
+  "brickWidth": 28,
+  "brickHeight": 9,
+  "startX": 14,
+  "startY": 28,
+  "spacingX": 2,
+  "spacingY": 2,
+  "rows": [
+    "RRRRRRRRRR",
+    "OOOOOOOOOO",
+    "YYYYYYYYYY",
+    "GGGGGGGGGG",
+    "CCCCCCCCCC",
+    "P...PP...P"
+  ],
+  "legend": {
+    "R": { "type": "normal", "hp": 1, "color": "0xFFFF3366" },
+    "O": { "type": "normal", "hp": 1, "color": "0xFFFF7700" },
+    "Y": { "type": "normal", "hp": 1, "color": "0xFFFFCC00" },
+    "G": { "type": "normal", "hp": 1, "color": "0xFF33CC66" },
+    "C": { "type": "normal", "hp": 1, "color": "0xFF00DDFF" },
+    "P": { "type": "powerup", "hp": 1, "color": "0xFFD500F9" }
+  }
+}

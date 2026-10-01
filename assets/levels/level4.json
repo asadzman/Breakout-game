@@ -1,0 +1,25 @@
+{
+  "name": "STAGE 4: CITADEL MATRIX",
+  "brickWidth": 28,
+  "brickHeight": 9,
+  "startX": 14,
+  "startY": 28,
+  "spacingX": 2,
+  "spacingY": 2,
+  "rows": [
+    "X3X3X3X3X3",
+    "3E2P22P2E3",
+    "X22222222X",
+    "1111111111",
+    "EPPEEPPEEP",
+    "X..X..X..X"
+  ],
+  "legend": {
+    "X": { "type": "indestructible", "hp": 999, "color": "0xFF718096" },
+    "3": { "type": "armored", "hp": 3, "color": "0xFFFF1744" },
+    "2": { "type": "armored", "hp": 2, "color": "0xFFFFD600" },
+    "1": { "type": "normal", "hp": 1, "color": "0xFF00E5FF" },
+    "E": { "type": "explosive", "hp": 1, "color": "0xFFFF6D00" },
+    "P": { "type": "powerup", "hp": 1, "color": "0xFFD500F9" }
+  }
+}

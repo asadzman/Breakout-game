@@ -1,0 +1,24 @@
+{
+  "name": "STAGE 2: ARMORED FORTRESS",
+  "brickWidth": 28,
+  "brickHeight": 9,
+  "startX": 14,
+  "startY": 28,
+  "spacingX": 2,
+  "spacingY": 2,
+  "rows": [
+    "X22222222X",
+    "2111111112",
+    "21PPEEPP12",
+    "2111111112",
+    "X22222222X",
+    ".P..EE..P."
+  ],
+  "legend": {
+    "X": { "type": "indestructible", "hp": 999, "color": "0xFF718096" },
+    "2": { "type": "armored", "hp": 2, "color": "0xFFFFD600" },
+    "1": { "type": "normal", "hp": 1, "color": "0xFF00E5FF" },
+    "E": { "type": "explosive", "hp": 1, "color": "0xFFFF6D00" },
+    "P": { "type": "powerup", "hp": 1, "color": "0xFFD500F9" }
+  }
+}

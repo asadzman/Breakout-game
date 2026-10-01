@@ -1,0 +1,25 @@
+{
+  "name": "STAGE 3: EXPLOSIVE MINEFIELD",
+  "brickWidth": 28,
+  "brickHeight": 9,
+  "startX": 14,
+  "startY": 28,
+  "spacingX": 2,
+  "spacingY": 2,
+  "rows": [
+    "3.E.33.E.3",
+    "2E1E22E1E2",
+    "3.E.33.E.3",
+    "X..P..P..X",
+    "2222222222",
+    ".E..PP..E."
+  ],
+  "legend": {
+    "3": { "type": "armored", "hp": 3, "color": "0xFFFF1744" },
+    "2": { "type": "armored", "hp": 2, "color": "0xFFFFD600" },
+    "1": { "type": "normal", "hp": 1, "color": "0xFF00E5FF" },
+    "E": { "type": "explosive", "hp": 1, "color": "0xFFFF6D00" },
+    "X": { "type": "indestructible", "hp": 999, "color": "0xFF718096" },
+    "P": { "type": "powerup", "hp": 1, "color": "0xFFD500F9" }
+  }
+}
