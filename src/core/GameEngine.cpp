@@ -774,7 +774,7 @@ void GameEngine::renderMainMenu() {
     }
 
     // Bottom help tip
-    m_buffer.drawBitmapTextCentered(216, "UP / DOWN ARROWS TO SELECT, SPACE / ENTER TO CONFIRM", Colors::GrayMid, 1);
+    m_buffer.drawBitmapTextCentered(216, "UP/DOWN: SELECT   SPACE: CONFIRM", Colors::GrayMid, 1);
 }
 
 void GameEngine::renderLevelSelect() {
@@ -837,7 +837,7 @@ void GameEngine::renderLevelSelect() {
 
     // Instructions
     m_buffer.drawBitmapTextCentered(192, "[ SPACE / ENTER: LAUNCH STAGE ]", Colors::NeonGreen, 1);
-    m_buffer.drawBitmapTextCentered(212, "LEFT / RIGHT: CHANGE STAGE   ESC: BACK", Colors::GrayMid, 1);
+    m_buffer.drawBitmapTextCentered(212, "LEFT/RIGHT: STAGE   ESC: BACK", Colors::GrayMid, 1);
 }
 
 void GameEngine::renderOptionsMenu() {
@@ -906,7 +906,7 @@ void GameEngine::renderOptionsMenu() {
         }
     }
 
-    m_buffer.drawBitmapTextCentered(212, "LEFT / RIGHT: TOGGLE VALUE   ESC: BACK", Colors::GrayMid, 1);
+    m_buffer.drawBitmapTextCentered(212, "LEFT/RIGHT: CHANGE   ESC: BACK", Colors::GrayMid, 1);
 }
 
 void GameEngine::renderHelpMenu() {

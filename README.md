@@ -4,6 +4,22 @@ An arcade-authentic Breakout game built in **C++20** and **Qt 6**, designed from
 
 ---
 
+## 🕹️ Screenshots & Gameplay Demos
+
+| Main Menu (Pure Raster Grid) | Stage 1: Neon Horizon |
+| :---: | :---: |
+| ![Main Menu](assets/screenshots/demo_main_menu.png) | ![Gameplay Neon](assets/screenshots/demo_gameplay_neon.png) |
+
+| Stage 2: Neovim Palette (Quack Theme) | Stage 3: Gruvbox Explosive Minefield |
+| :---: | :---: |
+| ![Gameplay Neovim](assets/screenshots/demo_gameplay_nvim.png) | ![Gameplay Gruvbox](assets/screenshots/demo_gameplay_gruvbox.png) |
+
+| In-Game Settings & Options | Interactive Stage Carousel & Mini-Map |
+| :---: | :---: |
+| ![Options Menu](assets/screenshots/demo_options_menu.png) | ![Stage Select](assets/screenshots/demo_stage_select.png) |
+
+---
+
 ## Highlights & Features
 
 - **Pure Software Raster Pipeline**:
@@ -16,7 +32,7 @@ An arcade-authentic Breakout game built in **C++20** and **Qt 6**, designed from
     1. **Neon Arcade**: Classic vibrant retro neon
     2. **Dark OLED**: Deep obsidian black with electric ice cyan & neon magenta
     3. **Gruvbox**: Legendary warm retro earthy palette (`#282828`, `#ebdbb2`, `#cc241d`, `#98971a`, `#d79921`, `#83a598`)
-    4. **Neovim Default**: Modern dark slate code palette (`#16161e`, `#c0caf5`, `#7aa2f7`, `#73daca`, `#bb9af7`, `#f7768e`)
+    4. **Neovim (Quack)**: Authentic dark slate editor palette (`#14161b` bg, `#e0e2ea` fg, `#8cf8f7` cyan, `#b3f6c0` green, `#fce094` yellow, `#ff5f5f` red, `#d787d7` purple)
     5. **Game Boy**: 4-shade nostalgic LCD green
     6. **Cyberpunk Amber**: Warm phosphor CRT amber monochrome
 
@@ -209,9 +225,8 @@ src/
 │   ├── PowerUp.h/cpp       # Falling capsule items & duration timers
 │   └── Laser.h/cpp         # Twin blaster projectiles
 ├── audio/
-│   └── SoundManager.h/cpp  # Retro 8-bit chip audio synthesizer
+│   └── SoundManager.h/cpp  # Crystalline piano/kalimba harmonic synthesizer (ting ting)
 └── ui/
-    ├── MainWindow.h/cpp    # Menubar, shortcuts, dialogs
-    ├── RasterWidget.h/cpp  # Nearest-neighbor pixel scaler & event dispatcher
-    └── SettingsDialog.h/cpp# Dynamic tuning dialog (speed, lives, CRT, theme)
+    ├── MainWindow.h/cpp    # Native menubar, window zoom, fullscreen toggle
+    └── RasterWidget.h/cpp  # Viewport centering & nearest-neighbor pixel scaler
 ```

@@ -218,9 +218,9 @@ void RasterBuffer::applyThemeFilter(PaletteTheme theme) {
             // Color-aware theme transformations for Gruvbox, NeovimDefault, and DarkOled
             if (lum < 0.12f) {
                 // Background dark tones
-                if (theme == PaletteTheme::Gruvbox)       m_pixels[i] = 0xFF282828;
-                else if (theme == PaletteTheme::NeovimDefault) m_pixels[i] = 0xFF16161E;
-                else if (theme == PaletteTheme::DarkOled)      m_pixels[i] = 0xFF050508;
+                if (theme == PaletteTheme::Gruvbox)            m_pixels[i] = 0xFF282828;
+                else if (theme == PaletteTheme::NeovimDefault) m_pixels[i] = 0xFF14161B; // Quack/Nvim bg (#14161b)
+                else if (theme == PaletteTheme::DarkOled)       m_pixels[i] = 0xFF050508;
                 continue;
             }
 
@@ -233,14 +233,14 @@ void RasterBuffer::applyThemeFilter(PaletteTheme theme) {
                 // Neutral gray / text / border tones
                 if (lum > 0.65f) {
                     // Highlights & white text
-                    if (theme == PaletteTheme::Gruvbox)       m_pixels[i] = 0xFFEBDBB2;
-                    else if (theme == PaletteTheme::NeovimDefault) m_pixels[i] = 0xFFC0CAF5;
-                    else if (theme == PaletteTheme::DarkOled)      m_pixels[i] = 0xFFF0F4F8;
+                    if (theme == PaletteTheme::Gruvbox)            m_pixels[i] = 0xFFEBDBB2;
+                    else if (theme == PaletteTheme::NeovimDefault) m_pixels[i] = 0xFFE0E2EA; // Quack/Nvim Normal fg (#e0e2ea)
+                    else if (theme == PaletteTheme::DarkOled)       m_pixels[i] = 0xFFF0F4F8;
                 } else {
                     // Border walls & dark grays
-                    if (theme == PaletteTheme::Gruvbox)       m_pixels[i] = 0xFF504945;
-                    else if (theme == PaletteTheme::NeovimDefault) m_pixels[i] = 0xFF292E42;
-                    else if (theme == PaletteTheme::DarkOled)      m_pixels[i] = 0xFF1C1D28;
+                    if (theme == PaletteTheme::Gruvbox)            m_pixels[i] = 0xFF504945;
+                    else if (theme == PaletteTheme::NeovimDefault) m_pixels[i] = 0xFF4F5258; // Quack/Nvim LineNr/border (#4f5258)
+                    else if (theme == PaletteTheme::DarkOled)       m_pixels[i] = 0xFF1C1D28;
                 }
                 continue;
             }
@@ -267,13 +267,14 @@ void RasterBuffer::applyThemeFilter(PaletteTheme theme) {
                 else if (hue < 270.0f)                 m_pixels[i] = 0xFF83A598; // Blue
                 else                                   m_pixels[i] = 0xFFD3869B; // Purple
             } else if (theme == PaletteTheme::NeovimDefault) {
-                if (hue < 20.0f || hue >= 335.0f)     m_pixels[i] = 0xFFF7768E; // Red
-                else if (hue < 50.0f)                  m_pixels[i] = 0xFFFF9E64; // Orange
-                else if (hue < 85.0f)                  m_pixels[i] = 0xFFE0AF68; // Yellow
-                else if (hue < 165.0f)                 m_pixels[i] = 0xFF73DACA; // Green
-                else if (hue < 205.0f)                 m_pixels[i] = 0xFF7DCFFF; // Cyan
-                else if (hue < 270.0f)                 m_pixels[i] = 0xFF7AA2F7; // Blue
-                else                                   m_pixels[i] = 0xFFBB9AF7; // Magenta
+                // Quack/Neovim palette mapping
+                if (hue < 20.0f || hue >= 335.0f)     m_pixels[i] = 0xFFFF5F5F; // Red (Removed/Error #ff5f5f)
+                else if (hue < 50.0f)                  m_pixels[i] = 0xFFFFD787; // Amber/Orange (dirSize #ffd787)
+                else if (hue < 85.0f)                  m_pixels[i] = 0xFFFCE094; // Yellow (Warning/Search #fce094)
+                else if (hue < 165.0f)                 m_pixels[i] = 0xFFB3F6C0; // Green (String/ModeMsg #b3f6c0)
+                else if (hue < 205.0f)                 m_pixels[i] = 0xFF8CF8F7; // Cyan (Directory/Special #8cf8f7)
+                else if (hue < 270.0f)                 m_pixels[i] = 0xFFA6DBFF; // Blue (Identifier #a6dbff)
+                else                                   m_pixels[i] = 0xFFD787D7; // Magenta (PmenuMatch #d787d7)
             } else if (theme == PaletteTheme::DarkOled) {
                 if (hue < 20.0f || hue >= 335.0f)     m_pixels[i] = 0xFFFF0055; // Neon Red
                 else if (hue < 50.0f)                  m_pixels[i] = 0xFFFF6600; // Neon Orange
