@@ -68,10 +68,29 @@ cmake --build build -j
   ```bash
   ./build/Breakout-game.app/Contents/MacOS/Breakout-game
   ```
-- **Linux & Windows**:
+- **Linux**:
   ```bash
   ./build/Breakout-game
   ```
+- **Windows (Command Prompt / PowerShell)**:
+  ```powershell
+  .\build\Breakout-game.exe
+  # Or with multi-config generators (MSVC Visual Studio):
+  .\build\Release\Breakout-game.exe
+  ```
+
+### Running Automated Tests
+
+Run the test suite across all platforms via CTest or direct binary execution:
+
+```bash
+# Via CTest
+ctest --test-dir build --output-on-failure
+
+# Direct execution
+./build/Breakout-tests          # macOS / Linux
+.\build\Breakout-tests.exe      # Windows
+```
 
 ---
 

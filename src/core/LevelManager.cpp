@@ -19,10 +19,26 @@ void LevelManager::discoverLevels(const std::string& assetsPath) {
     m_levelPaths.clear();
 
     QStringList searchDirs = {
+        ":/assets/levels", // Qt compiled resource system (standalone executable)
         QString::fromStdString(assetsPath),
         QCoreApplication::applicationDirPath() + "/" + QString::fromStdString(assetsPath),
+        QCoreApplication::applicationDirPath() + "/../Resources/" + QString::fromStdString(assetsPath),
         QCoreApplication::applicationDirPath() + "/../" + QString::fromStdString(assetsPath),
         QCoreApplication::applicationDirPath() + "/../../" + QString::fromStdString(assetsPath)
+    };
+
+    auto extractNum = [](const QString& s) {
+        int n = 0;
+        bool inNum = false;
+        for (QChar c : s) {
+            if (c.isDigit()) {
+                n = n * 10 + c.digitValue();
+                inNum = true;
+            } else if (inNum) {
+                break;
+            }
+        }
+        return n;
     };
 
     for (const QString& dirPath : searchDirs) {
@@ -31,6 +47,14 @@ void LevelManager::discoverLevels(const std::string& assetsPath) {
             QStringList filters;
             filters << "*.json";
             QStringList files = dir.entryList(filters, QDir::Files, QDir::Name);
+            // Sort naturally (level1, level2, ... level10)
+            std::sort(files.begin(), files.end(), [&](const QString& a, const QString& b) {
+                int numA = extractNum(a);
+                int numB = extractNum(b);
+                if (numA != numB && numA > 0 && numB > 0) return numA < numB;
+                return a < b;
+            });
+
             for (const QString& file : files) {
                 m_levelPaths.push_back(dir.absoluteFilePath(file).toStdString());
             }
@@ -239,6 +263,20 @@ bool LevelManager::loadLevel(int index) {
 
     if (!loadFromFile(path, m_currentLevel)) {
         loadEmbeddedLevel(index, m_currentLevel);
+    }
+    return true;
+}
+
+bool LevelManager::peekLevel(int index, LevelData& outLevel) {
+    if (m_levelPaths.empty()) return false;
+    if (index < 0 || index >= static_cast<int>(m_levelPaths.size())) return false;
+    const std::string& path = m_levelPaths[static_cast<size_t>(index)];
+    if (path.rfind("embedded://", 0) == 0) {
+        loadEmbeddedLevel(index, outLevel);
+        return true;
+    }
+    if (!loadFromFile(path, outLevel)) {
+        loadEmbeddedLevel(index, outLevel);
     }
     return true;
 }

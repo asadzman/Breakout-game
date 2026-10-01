@@ -185,104 +185,124 @@ void RasterBuffer::applyScanlineFilter(CrtScanlineMode mode) {
     }
 }
 
+static inline uint32_t computeThemeColor(uint32_t c, PaletteTheme theme) {
+    uint32_t r = (c >> 16) & 0xFF;
+    uint32_t g = (c >> 8) & 0xFF;
+    uint32_t b = c & 0xFF;
+
+    float lum = (0.299f * r + 0.587f * g + 0.114f * b) / 255.0f;
+
+    if (theme == PaletteTheme::GameBoy) {
+        if (lum < 0.25f)      return 0xFF0F380F;
+        else if (lum < 0.50f) return 0xFF306230;
+        else if (lum < 0.75f) return 0xFF8BAC0F;
+        else                  return 0xFF9BBC0F;
+    } else if (theme == PaletteTheme::CyberpunkAmber) {
+        uint32_t amberR = static_cast<uint32_t>(std::min(255.0f, lum * 255.0f));
+        uint32_t amberG = static_cast<uint32_t>(std::min(255.0f, lum * 176.0f));
+        uint32_t amberB = static_cast<uint32_t>(std::min(255.0f, lum * 32.0f));
+        return 0xFF000000 | (amberR << 16) | (amberG << 8) | amberB;
+    } else {
+        if (lum < 0.12f) {
+            if (theme == PaletteTheme::Gruvbox)            return 0xFF282828;
+            else if (theme == PaletteTheme::NeovimDefault) return 0xFF14161B;
+            else if (theme == PaletteTheme::DarkOled)       return 0xFF050508;
+            return c;
+        }
+
+        float maxC = static_cast<float>(std::max({r, g, b}));
+        float minC = static_cast<float>(std::min({r, g, b}));
+        float delta = maxC - minC;
+        float sat = (maxC > 0.001f) ? (delta / maxC) : 0.0f;
+
+        if (sat < 0.18f) {
+            if (lum > 0.65f) {
+                if (theme == PaletteTheme::Gruvbox)            return 0xFFEBDBB2;
+                else if (theme == PaletteTheme::NeovimDefault) return 0xFFE0E2EA;
+                else if (theme == PaletteTheme::DarkOled)       return 0xFFF0F4F8;
+            } else {
+                if (theme == PaletteTheme::Gruvbox)            return 0xFF504945;
+                else if (theme == PaletteTheme::NeovimDefault) return 0xFF4F5258;
+                else if (theme == PaletteTheme::DarkOled)       return 0xFF1C1D28;
+            }
+            return c;
+        }
+
+        float hue = 0.0f;
+        if (delta > 0.001f) {
+            if (maxC == r) {
+                hue = 60.0f * std::fmod(((g - b) / delta), 6.0f);
+            } else if (maxC == g) {
+                hue = 60.0f * (((b - r) / delta) + 2.0f);
+            } else {
+                hue = 60.0f * (((r - g) / delta) + 4.0f);
+            }
+            if (hue < 0.0f) hue += 360.0f;
+        }
+
+        if (theme == PaletteTheme::Gruvbox) {
+            if (hue < 20.0f || hue >= 335.0f)     return 0xFFFB4934;
+            else if (hue < 50.0f)                  return 0xFFFE8019;
+            else if (hue < 85.0f)                  return 0xFFFABD2F;
+            else if (hue < 165.0f)                 return 0xFFB8BB26;
+            else if (hue < 205.0f)                 return 0xFF8EC07C;
+            else if (hue < 270.0f)                 return 0xFF83A598;
+            else                                   return 0xFFD3869B;
+        } else if (theme == PaletteTheme::NeovimDefault) {
+            if (hue < 35.0f || hue >= 330.0f)      return 0xFF8CF8F7;
+            else if (hue < 75.0f)                  return 0xFFFCE094;
+            else if (hue < 155.0f)                 return 0xFFB3F6C0;
+            else if (hue < 195.0f)                 return 0xFF5FD7AF;
+            else if (hue < 240.0f)                 return 0xFF70B8FF;
+            else if (hue < 290.0f)                 return 0xFFA6DBFF;
+            else                                   return 0xFF8CF8F7;
+        } else if (theme == PaletteTheme::DarkOled) {
+            if (hue < 20.0f || hue >= 335.0f)     return 0xFFFF0055;
+            else if (hue < 50.0f)                  return 0xFFFF6600;
+            else if (hue < 85.0f)                  return 0xFFFFEE00;
+            else if (hue < 165.0f)                 return 0xFF00FF66;
+            else if (hue < 210.0f)                 return 0xFF00F0FF;
+            else if (hue < 270.0f)                 return 0xFF3377FF;
+            else                                   return 0xFFFF00D4;
+        }
+    }
+    return c;
+}
+
 void RasterBuffer::applyThemeFilter(PaletteTheme theme) {
     if (theme == PaletteTheme::NeonArcade) return; // Native palette
 
+    struct CacheEntry {
+        uint32_t in = 0;
+        uint32_t out = 0;
+        bool valid = false;
+    };
+    CacheEntry cache[256];
+
     for (size_t i = 0; i < m_pixels.size(); ++i) {
         uint32_t c = m_pixels[i];
-        uint32_t r = (c >> 16) & 0xFF;
-        uint32_t g = (c >> 8) & 0xFF;
-        uint32_t b = c & 0xFF;
-
-        // Grayscale luminance
-        float lum = (0.299f * r + 0.587f * g + 0.114f * b) / 255.0f;
-
-        if (theme == PaletteTheme::GameBoy) {
-            // 4-shade classic Game Boy palette
-            if (lum < 0.25f) {
-                m_pixels[i] = 0xFF0F380F;
-            } else if (lum < 0.50f) {
-                m_pixels[i] = 0xFF306230;
-            } else if (lum < 0.75f) {
-                m_pixels[i] = 0xFF8BAC0F;
-            } else {
-                m_pixels[i] = 0xFF9BBC0F;
-            }
-        } else if (theme == PaletteTheme::CyberpunkAmber) {
-            // Amber monochrome CRT palette
-            uint32_t amberR = static_cast<uint32_t>(std::min(255.0f, lum * 255.0f));
-            uint32_t amberG = static_cast<uint32_t>(std::min(255.0f, lum * 176.0f));
-            uint32_t amberB = static_cast<uint32_t>(std::min(255.0f, lum * 32.0f));
-            m_pixels[i] = 0xFF000000 | (amberR << 16) | (amberG << 8) | amberB;
+        size_t idx = ((c >> 16) ^ (c >> 8) ^ c) & 0xFF;
+        if (cache[idx].valid && cache[idx].in == c) {
+            m_pixels[i] = cache[idx].out;
         } else {
-            // Color-aware theme transformations for Gruvbox, NeovimDefault, and DarkOled
-            if (lum < 0.12f) {
-                // Background dark tones
-                if (theme == PaletteTheme::Gruvbox)            m_pixels[i] = 0xFF282828;
-                else if (theme == PaletteTheme::NeovimDefault) m_pixels[i] = 0xFF14161B; // Quack/Nvim bg (#14161b)
-                else if (theme == PaletteTheme::DarkOled)       m_pixels[i] = 0xFF050508;
-                continue;
-            }
+            uint32_t out = computeThemeColor(c, theme);
+            cache[idx] = {c, out, true};
+            m_pixels[i] = out;
+        }
+    }
+}
 
-            float maxC = std::max({r, g, b});
-            float minC = std::min({r, g, b});
-            float delta = maxC - minC;
-            float sat = (maxC > 0.001f) ? (delta / maxC) : 0.0f;
-
-            if (sat < 0.18f) {
-                // Neutral gray / text / border tones
-                if (lum > 0.65f) {
-                    // Highlights & white text
-                    if (theme == PaletteTheme::Gruvbox)            m_pixels[i] = 0xFFEBDBB2;
-                    else if (theme == PaletteTheme::NeovimDefault) m_pixels[i] = 0xFFE0E2EA; // Quack/Nvim Normal fg (#e0e2ea)
-                    else if (theme == PaletteTheme::DarkOled)       m_pixels[i] = 0xFFF0F4F8;
-                } else {
-                    // Border walls & dark grays
-                    if (theme == PaletteTheme::Gruvbox)            m_pixels[i] = 0xFF504945;
-                    else if (theme == PaletteTheme::NeovimDefault) m_pixels[i] = 0xFF4F5258; // Quack/Nvim LineNr/border (#4f5258)
-                    else if (theme == PaletteTheme::DarkOled)       m_pixels[i] = 0xFF1C1D28;
-                }
-                continue;
-            }
-
-            // Hue calculation in degrees [0, 360)
-            float hue = 0.0f;
-            if (delta > 0.001f) {
-                if (maxC == r) {
-                    hue = 60.0f * std::fmod(((g - b) / delta), 6.0f);
-                } else if (maxC == g) {
-                    hue = 60.0f * (((b - r) / delta) + 2.0f);
-                } else {
-                    hue = 60.0f * (((r - g) / delta) + 4.0f);
-                }
-                if (hue < 0.0f) hue += 360.0f;
-            }
-
-            if (theme == PaletteTheme::Gruvbox) {
-                if (hue < 20.0f || hue >= 335.0f)     m_pixels[i] = 0xFFFB4934; // Red
-                else if (hue < 50.0f)                  m_pixels[i] = 0xFFFE8019; // Orange
-                else if (hue < 85.0f)                  m_pixels[i] = 0xFFFABD2F; // Yellow
-                else if (hue < 165.0f)                 m_pixels[i] = 0xFFB8BB26; // Green
-                else if (hue < 205.0f)                 m_pixels[i] = 0xFF8EC07C; // Aqua
-                else if (hue < 270.0f)                 m_pixels[i] = 0xFF83A598; // Blue
-                else                                   m_pixels[i] = 0xFFD3869B; // Purple
-            } else if (theme == PaletteTheme::NeovimDefault) {
-                // Cool Green-Blue Neovim Aesthetic (Mint Green, Electric Cyan, Sky Blue, Dark Slate)
-                if (hue < 35.0f || hue >= 330.0f)      m_pixels[i] = 0xFF8CF8F7; // Electric Cyan (Nvim commands & logo)
-                else if (hue < 75.0f)                  m_pixels[i] = 0xFFFCE094; // Soft Gold accent (prompt highlight)
-                else if (hue < 155.0f)                 m_pixels[i] = 0xFFB3F6C0; // Mint / Seafoam Green (Nvim logo & version)
-                else if (hue < 195.0f)                 m_pixels[i] = 0xFF5FD7AF; // Spring Aqua / Teal
-                else if (hue < 240.0f)                 m_pixels[i] = 0xFF70B8FF; // Sky Blue (command links)
-                else if (hue < 290.0f)                 m_pixels[i] = 0xFFA6DBFF; // Soft Ice Blue
-                else                                   m_pixels[i] = 0xFF8CF8F7; // Ice Cyan
-            } else if (theme == PaletteTheme::DarkOled) {
-                if (hue < 20.0f || hue >= 335.0f)     m_pixels[i] = 0xFFFF0055; // Neon Red
-                else if (hue < 50.0f)                  m_pixels[i] = 0xFFFF6600; // Neon Orange
-                else if (hue < 85.0f)                  m_pixels[i] = 0xFFFFEE00; // Bright Yellow
-                else if (hue < 165.0f)                 m_pixels[i] = 0xFF00FF66; // Bright Green
-                else if (hue < 210.0f)                 m_pixels[i] = 0xFF00F0FF; // Ice Cyan
-                else if (hue < 270.0f)                 m_pixels[i] = 0xFF3377FF; // Vivid Blue
-                else                                   m_pixels[i] = 0xFFFF00D4; // Hot Pink
+void RasterBuffer::applyScreenShake(int dx, int dy) {
+    if (dx == 0 && dy == 0) return;
+    std::vector<uint32_t> temp = m_pixels;
+    clear(Colors::Black);
+    for (int y = 0; y < m_height; ++y) {
+        int srcY = y - dy;
+        if (srcY < 0 || srcY >= m_height) continue;
+        for (int x = 0; x < m_width; ++x) {
+            int srcX = x - dx;
+            if (srcX >= 0 && srcX < m_width) {
+                m_pixels[static_cast<size_t>(y * m_width + x)] = temp[static_cast<size_t>(srcY * m_width + srcX)];
             }
         }
     }

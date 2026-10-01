@@ -1,5 +1,6 @@
 #include "GameEngine.h"
 #include "audio/SoundManager.h"
+#include "raster/BitmapFont.h"
 #include <QSettings>
 #include <QCoreApplication>
 #include <random>
@@ -17,6 +18,7 @@ static std::mt19937& getEngineRng() {
 GameEngine::GameEngine()
     : m_buffer(VIRTUAL_WIDTH, VIRTUAL_HEIGHT)
 {
+    loadSettings();
     loadHighScore();
     m_levelManager.loadLevel(0);
     m_state = GameState::MainMenu;
@@ -35,12 +37,113 @@ void GameEngine::saveHighScore() {
     }
 }
 
+void GameEngine::loadSettings() {
+    QSettings settings("BreakoutGame", "RetroBreakout");
+    m_difficultyMultiplier = settings.value("speedMultiplier", 1.0f).toFloat();
+    m_startingLives = settings.value("startingLives", 3).toInt();
+    m_crtMode = static_cast<CrtScanlineMode>(settings.value("crtMode", static_cast<int>(CrtScanlineMode::Subtle)).toInt());
+    m_paletteTheme = static_cast<PaletteTheme>(settings.value("paletteTheme", static_cast<int>(PaletteTheme::NeonArcade)).toInt());
+    m_paddleSkin = static_cast<PaddleSkin>(settings.value("paddleSkin", static_cast<int>(PaddleSkin::Skateboard)).toInt());
+    m_ballSkin = static_cast<BallSkin>(settings.value("ballSkin", static_cast<int>(BallSkin::EnergyOrb)).toInt());
+    m_mouseControlEnabled = settings.value("mouseControl", true).toBool();
+
+    float vol = settings.value("volume", 0.8f).toFloat();
+    bool muted = settings.value("muted", false).toBool();
+    SoundManager::instance().setVolume(vol);
+    SoundManager::instance().setMuted(muted);
+    m_paddle.setSkin(m_paddleSkin);
+}
+
+void GameEngine::saveSettings() {
+    QSettings settings("BreakoutGame", "RetroBreakout");
+    settings.setValue("speedMultiplier", m_difficultyMultiplier);
+    settings.setValue("startingLives", m_startingLives);
+    settings.setValue("crtMode", static_cast<int>(m_crtMode));
+    settings.setValue("paletteTheme", static_cast<int>(m_paletteTheme));
+    settings.setValue("paddleSkin", static_cast<int>(m_paddleSkin));
+    settings.setValue("ballSkin", static_cast<int>(m_ballSkin));
+    settings.setValue("mouseControl", m_mouseControlEnabled);
+    settings.setValue("volume", SoundManager::instance().getVolume());
+    settings.setValue("muted", SoundManager::instance().isMuted());
+}
+
+void GameEngine::openMainMenu() {
+    m_state = GameState::MainMenu;
+    m_mainMenuIndex = 0;
+}
+
+void GameEngine::openOptionsMenu() {
+    if (m_state != GameState::OptionsMenu) {
+        m_previousState = m_state;
+        m_optionsMenuIndex = 0;
+        m_state = GameState::OptionsMenu;
+    }
+}
+
+void GameEngine::openLevelSelect() {
+    if (m_state != GameState::LevelSelect) {
+        m_previousState = m_state;
+        m_levelSelectIndex = m_levelManager.getCurrentLevelIndex();
+        m_state = GameState::LevelSelect;
+    }
+}
+
+void GameEngine::openHelpMenu() {
+    if (m_state != GameState::HelpMenu) {
+        m_previousState = m_state;
+        m_state = GameState::HelpMenu;
+    }
+}
+
+void GameEngine::openAboutMenu() {
+    if (m_state != GameState::AboutMenu) {
+        m_previousState = m_state;
+        m_state = GameState::AboutMenu;
+    }
+}
+
+void GameEngine::triggerScreenShake(float duration, float intensity) {
+    m_shakeTimer = duration;
+    m_shakeIntensity = intensity;
+}
+
+void GameEngine::spawnFloatingScore(Vec2 pos, std::string text, uint32_t color) {
+    m_floatingTexts.push_back(FloatingText{
+        .pos = pos,
+        .text = std::move(text),
+        .color = color,
+        .life = 0.8f,
+        .maxLife = 0.8f
+    });
+}
+
+void GameEngine::updateFloatingTexts(float dt) {
+    for (auto it = m_floatingTexts.begin(); it != m_floatingTexts.end();) {
+        it->life -= dt;
+        if (it->life <= 0.0f) {
+            it = m_floatingTexts.erase(it);
+        } else {
+            it->pos.y -= 20.0f * dt;
+            ++it;
+        }
+    }
+}
+
+void GameEngine::renderFloatingTexts() {
+    for (const auto& ft : m_floatingTexts) {
+        int tx = static_cast<int>(ft.pos.x) - (BitmapFont::measureText(ft.text, 1) / 2);
+        int ty = static_cast<int>(ft.pos.y);
+        m_buffer.drawBitmapText(tx, ty, ft.text, ft.color, 1);
+    }
+}
+
 void GameEngine::startNewGame() {
     m_score = 0;
     m_lives = m_startingLives;
     m_combo = 0;
     m_levelTime = 0.0f;
     m_hasShield = false;
+    m_floatingTexts.clear();
     m_levelManager.loadLevel(0);
     restartCurrentLevel();
 }
@@ -51,6 +154,7 @@ void GameEngine::selectAndStartLevel(int levelIdx) {
     m_combo = 0;
     m_levelTime = 0.0f;
     m_hasShield = false;
+    m_floatingTexts.clear();
     m_levelManager.loadLevel(levelIdx);
     restartCurrentLevel();
 }
@@ -63,6 +167,7 @@ void GameEngine::restartCurrentLevel() {
     m_lasers.clear();
     m_powerUps.clear();
     m_particles.clear();
+    m_floatingTexts.clear();
     m_paddle.reset();
     m_paddle.setSkin(m_paddleSkin);
     m_hasShield = false;
@@ -83,6 +188,7 @@ void GameEngine::setDifficultyMultiplier(float mult) {
     for (auto& b : m_balls) {
         b.setSlow(m_difficultyMultiplier < 0.95f, m_difficultyMultiplier);
     }
+    saveSettings();
 }
 
 void GameEngine::setStartingLives(int lives) {
@@ -90,11 +196,13 @@ void GameEngine::setStartingLives(int lives) {
     if (m_state == GameState::Ready && m_score == 0) {
         m_lives = m_startingLives;
     }
+    saveSettings();
 }
 
 void GameEngine::setPaddleSkin(PaddleSkin skin) {
     m_paddleSkin = skin;
     m_paddle.setSkin(skin);
+    saveSettings();
 }
 
 void GameEngine::setBallSkin(BallSkin skin) {
@@ -102,6 +210,7 @@ void GameEngine::setBallSkin(BallSkin skin) {
     for (auto& b : m_balls) {
         b.setSkin(skin);
     }
+    saveSettings();
 }
 
 void GameEngine::setMoveLeft(bool active) {
@@ -190,6 +299,7 @@ void GameEngine::menuLeft() {
             default:
                 break;
         }
+        saveSettings();
     }
 }
 
@@ -241,6 +351,7 @@ void GameEngine::menuRight() {
             default:
                 break;
         }
+        saveSettings();
     }
 }
 
@@ -291,7 +402,7 @@ void GameEngine::menuConfirm() {
         return;
     }
 
-    if (m_state == GameState::HelpMenu) {
+    if (m_state == GameState::HelpMenu || m_state == GameState::AboutMenu) {
         menuBack();
         return;
     }
@@ -327,7 +438,7 @@ void GameEngine::menuConfirm() {
 void GameEngine::menuBack() {
     SoundManager::instance().play(SoundEffect::MenuChange);
     if (m_state == GameState::OptionsMenu || m_state == GameState::LevelSelect ||
-        m_state == GameState::HelpMenu) {
+        m_state == GameState::HelpMenu || m_state == GameState::AboutMenu) {
         m_state = m_previousState;
     } else if (m_state == GameState::Playing) {
         m_state = GameState::Paused;
@@ -364,7 +475,7 @@ void GameEngine::handleMouseClick(float vx, float vy) {
             }
         }
         return;
-    } else if (m_state == GameState::HelpMenu) {
+    } else if (m_state == GameState::HelpMenu || m_state == GameState::AboutMenu) {
         menuConfirm();
     } else if (m_state == GameState::LevelSelect) {
         if (vy >= 40 && vy <= 70) {
@@ -449,7 +560,8 @@ void GameEngine::togglePause() {
         m_pauseMenuIndex = 0;
     } else if (m_state == GameState::Paused) {
         m_state = GameState::Playing;
-    } else if (m_state == GameState::OptionsMenu || m_state == GameState::LevelSelect || m_state == GameState::HelpMenu) {
+    } else if (m_state == GameState::OptionsMenu || m_state == GameState::LevelSelect ||
+               m_state == GameState::HelpMenu || m_state == GameState::AboutMenu) {
         menuBack();
     }
 }
@@ -460,9 +572,14 @@ void GameEngine::update(float dt) {
 
     if (m_state == GameState::MainMenu || m_state == GameState::LevelSelect ||
         m_state == GameState::OptionsMenu || m_state == GameState::HelpMenu ||
-        m_state == GameState::Paused) {
+        m_state == GameState::AboutMenu || m_state == GameState::Paused) {
         return;
     }
+
+    if (m_shakeTimer > 0.0f) {
+        m_shakeTimer = std::max(0.0f, m_shakeTimer - dt);
+    }
+    updateFloatingTexts(dt);
 
     if (m_state == GameState::BallLost) {
         m_stateTimer -= dt;
@@ -541,6 +658,7 @@ void GameEngine::updatePhysicsSubSteps(float dt) {
                     vel.y = -std::abs(vel.y);
                     ball.setVelocity(vel);
                     SoundManager::instance().play(SoundEffect::Explosion);
+                    triggerScreenShake(0.20f, 2.5f);
                     m_particles.spawnBrickExplosion(Vec2{VIRTUAL_WIDTH * 0.5f, static_cast<float>(PLAYFIELD_BOTTOM)},
                                                    VIRTUAL_WIDTH, 4.0f, Colors::NeonCyan, 30);
                 }
@@ -550,6 +668,7 @@ void GameEngine::updatePhysicsSubSteps(float dt) {
 
             CollisionResult pCol = Collision::testCircleAABB(ball.getPosition(), ball.getRadius(), paddleBox);
             if (pCol.collided && ball.getVelocity().y > 0.0f) {
+                m_paddle.triggerHitFlash();
                 if (m_paddle.isSticky()) {
                     ball.stickToPaddle(ball.getPosition().x - (m_paddle.getPosition().x + m_paddle.getWidth() * 0.5f));
                     SoundManager::instance().play(SoundEffect::PaddleHit);
@@ -571,6 +690,7 @@ void GameEngine::updatePhysicsSubSteps(float dt) {
                 CollisionResult bCol = Collision::testCircleAABB(ball.getPosition(), ball.getRadius(), brick.getBounds());
                 if (bCol.collided) {
                     if (!ball.isFireball()) {
+                        ball.setPosition(ball.getPosition() + bCol.normal * (bCol.penetration + 0.2f));
                         ball.deflectNormal(bCol.normal);
                     }
 
@@ -605,6 +725,15 @@ void GameEngine::onBrickHit(Brick& brick, Vec2 hitPoint, bool destroyed) {
         SoundManager::instance().playBrickTing(m_combo);
         m_particles.spawnBrickExplosion(brick.getCenter(), 28.0f, 9.0f, brick.getColor(), 18);
 
+        char scoreStr[16];
+        std::snprintf(scoreStr, sizeof(scoreStr), "+%d", points);
+        spawnFloatingScore(brick.getCenter(), scoreStr, (m_combo > 2) ? Colors::NeonYellow : Colors::White);
+        if (m_combo >= 3 && m_combo % 2 == 1) {
+            char comboStr[16];
+            std::snprintf(comboStr, sizeof(comboStr), "COMBO x%d!", m_combo);
+            spawnFloatingScore(Vec2{brick.getCenter().x, brick.getCenter().y - 8.0f}, comboStr, Colors::NeonGreen);
+        }
+
         if (brick.isExplosive()) {
             triggerExplosiveChain(brick.getCenter(), 34.0f);
         }
@@ -625,6 +754,7 @@ void GameEngine::onBrickHit(Brick& brick, Vec2 hitPoint, bool destroyed) {
 
 void GameEngine::triggerExplosiveChain(Vec2 center, float radius) {
     SoundManager::instance().play(SoundEffect::Explosion);
+    triggerScreenShake(0.22f, 3.0f);
     auto& bricks = m_levelManager.getBricks();
     for (auto& b : bricks) {
         if (!b.isDestroyed() && !b.isIndestructible()) {
@@ -632,6 +762,7 @@ void GameEngine::triggerExplosiveChain(Vec2 center, float radius) {
                 bool destroyed = b.hit(2);
                 if (destroyed) {
                     m_score += 150;
+                    spawnFloatingScore(b.getCenter(), "+150", Colors::NeonOrange);
                     m_particles.spawnBrickExplosion(b.getCenter(), 28.0f, 9.0f, b.getColor(), 14);
                 }
             }
@@ -648,6 +779,9 @@ void GameEngine::spawnRandomPowerUp(Vec2 pos) {
 void GameEngine::activatePowerUp(PowerUpType type) {
     SoundManager::instance().play(SoundEffect::PowerUpCollect);
     m_score += 250;
+    char pupScoreStr[32];
+    std::snprintf(pupScoreStr, sizeof(pupScoreStr), "+250 %s", PowerUp::getName(type));
+    spawnFloatingScore(m_paddle.getPosition(), pupScoreStr, PowerUp::getColor(type));
 
     switch (type) {
         case PowerUpType::Elongate:
@@ -745,6 +879,7 @@ void GameEngine::updatePowerUps(float dt) {
 void GameEngine::handleBallLost() {
     m_lives--;
     m_combo = 0;
+    triggerScreenShake(0.25f, 3.5f);
     SoundManager::instance().play(SoundEffect::BallLost);
     m_state = GameState::BallLost;
     m_stateTimer = 1.2f;
@@ -806,66 +941,42 @@ void GameEngine::renderLevelSelect() {
     int total = m_levelManager.getTotalLevels();
     char stageTitle[64];
     std::snprintf(stageTitle, sizeof(stageTitle), "< STAGE %d OF %d >", m_levelSelectIndex + 1, total);
-    m_buffer.drawBitmapTextCentered(46, stageTitle, Colors::NeonCyan, 1);
+    m_buffer.drawBitmapTextCentered(44, stageTitle, Colors::NeonCyan, 1);
 
-    // Show stage name
-    const char* stageNames[6] = {
-        "STAGE 1: NEON HORIZON",
-        "STAGE 2: ARMORED FORTRESS",
-        "STAGE 3: EXPLOSIVE MINEFIELD",
-        "STAGE 4: CITADEL MATRIX",
-        "STAGE 5: CYBER DIAMOND",
-        "STAGE 6: SUPERNOVA CASCADE"
-    };
-    const char* name = (m_levelSelectIndex < 6) ? stageNames[m_levelSelectIndex] : "CUSTOM STAGE";
-    m_buffer.drawBitmapTextCentered(60, name, Colors::White, 1);
+    LevelData previewLevel;
+    bool hasPreview = m_levelManager.peekLevel(m_levelSelectIndex, previewLevel);
+    std::string displayName = (hasPreview && !previewLevel.name.empty()) ? previewLevel.name : ("STAGE " + std::to_string(m_levelSelectIndex + 1));
+    m_buffer.drawBitmapTextCentered(58, displayName, Colors::White, 1);
 
-    // Render a mini preview map of the selected stage in center!
+    // Render a mini preview map of the selected stage in center
     int previewBoxX = 50;
-    int previewBoxY = 78;
+    int previewBoxY = 74;
     int previewBoxW = 220;
-    int previewBoxH = 100;
+    int previewBoxH = 104;
     m_buffer.fillRect(previewBoxX, previewBoxY, previewBoxW, previewBoxH, Colors::Black);
     m_buffer.drawRect(previewBoxX, previewBoxY, previewBoxW, previewBoxH, Colors::BorderWall);
 
-    // Mini preview bricks
-    int cols = 10;
-    int rows = 6;
-    int miniBw = 18;
-    int miniBh = 6;
-    int startPx = previewBoxX + (previewBoxW - cols * (miniBw + 2)) / 2;
-    int startPy = previewBoxY + 12;
+    if (hasPreview && !previewLevel.bricks.empty()) {
+        float scaleX = static_cast<float>(previewBoxW - 20) / static_cast<float>(PLAYFIELD_RIGHT - PLAYFIELD_LEFT);
+        float scaleY = static_cast<float>(previewBoxH - 30) / 120.0f;
+        float baseOffsetX = static_cast<float>(previewBoxX + 10);
+        float baseOffsetY = static_cast<float>(previewBoxY + 10);
 
-    for (int r = 0; r < rows; ++r) {
-        for (int c = 0; c < cols; ++c) {
-            uint32_t col = Colors::NeonCyan;
-            if (m_levelSelectIndex == 0) {
-                if (r == 0) col = Colors::BrickRed;
-                else if (r == 1) col = Colors::BrickOrange;
-                else if (r == 2) col = Colors::BrickYellow;
-                else if (r == 3) col = Colors::BrickGreen;
-                else col = Colors::BrickCyan;
-            } else if (m_levelSelectIndex == 1) {
-                col = (c == 0 || c == cols - 1) ? Colors::BorderWall : Colors::NeonYellow;
-            } else if (m_levelSelectIndex == 2) {
-                col = ((r + c) % 2 == 0) ? Colors::NeonOrange : Colors::NeonPink;
-            } else if (m_levelSelectIndex == 3) {
-                col = (r % 2 == 0) ? Colors::NeonYellow : Colors::NeonCyan;
-            } else if (m_levelSelectIndex == 4) {
-                col = (r == 0 || r == 5) ? Colors::NeonYellow : Colors::NeonCyan;
-            } else {
-                col = ((r + c) % 3 == 0) ? Colors::NeonOrange : Colors::NeonGreen;
-            }
-            m_buffer.fillRect(startPx + c * (miniBw + 2), startPy + r * (miniBh + 2), miniBw, miniBh, col);
+        for (const auto& b : previewLevel.bricks) {
+            int bx = static_cast<int>(baseOffsetX + (b.getBounds().min.x - PLAYFIELD_LEFT) * scaleX);
+            int by = static_cast<int>(baseOffsetY + (b.getBounds().min.y - PLAYFIELD_TOP) * scaleY);
+            int bw = std::max(2, static_cast<int>(b.getBounds().width() * scaleX) - 1);
+            int bh = std::max(2, static_cast<int>(b.getBounds().height() * scaleY) - 1);
+            m_buffer.fillRect(bx, by, bw, bh, b.getColor());
         }
     }
 
     // Mini paddle at bottom of preview
-    m_buffer.fillRect(previewBoxX + previewBoxW / 2 - 16, previewBoxY + previewBoxH - 12, 32, 4, Colors::NeonCyan);
+    m_buffer.fillRect(previewBoxX + previewBoxW / 2 - 16, previewBoxY + previewBoxH - 10, 32, 4, Colors::NeonCyan);
 
     // Instructions
-    m_buffer.drawBitmapTextCentered(192, "[ SPACE / ENTER: LAUNCH STAGE ]", Colors::NeonGreen, 1);
-    m_buffer.drawBitmapTextCentered(212, "LEFT/RIGHT: STAGE   ESC: BACK", Colors::GrayMid, 1);
+    m_buffer.drawBitmapTextCentered(190, "[ SPACE / ENTER: LAUNCH STAGE ]", Colors::NeonGreen, 1);
+    m_buffer.drawBitmapTextCentered(210, "LEFT/RIGHT: STAGE   ESC: BACK", Colors::GrayMid, 1);
 }
 
 void GameEngine::renderOptionsMenu() {
@@ -947,40 +1058,66 @@ void GameEngine::renderOptionsMenu() {
 
 void GameEngine::renderHelpMenu() {
     m_buffer.drawRect(8, 8, VIRTUAL_WIDTH - 16, VIRTUAL_HEIGHT - 16, Colors::NeonCyan);
-    m_buffer.drawBitmapTextCentered(16, "HOW TO PLAY & POWER-UPS", Colors::NeonYellow, 1);
-    m_buffer.drawFastHLine(20, VIRTUAL_WIDTH - 20, 28, Colors::GridLine);
+    m_buffer.drawBitmapTextCentered(14, "HOW TO PLAY & POWER-UPS", Colors::NeonYellow, 1);
+    m_buffer.drawFastHLine(20, VIRTUAL_WIDTH - 20, 24, Colors::GridLine);
 
-    m_buffer.drawBitmapText(18, 34, "CONTROLS:", Colors::NeonCyan, 1);
-    m_buffer.drawBitmapText(18, 46, "LEFT/RIGHT OR A/D: MOVE PADDLE", Colors::White, 1);
-    m_buffer.drawBitmapText(18, 58, "SPACE: LAUNCH BALL / FIRE LASERS", Colors::White, 1);
-    m_buffer.drawBitmapText(18, 70, "P OR ESC: PAUSE / IN-GAME MENU", Colors::White, 1);
+    m_buffer.drawBitmapText(18, 28, "CONTROLS:", Colors::NeonCyan, 1);
+    m_buffer.drawBitmapText(18, 38, "LEFT/RIGHT OR A/D: MOVE PADDLE", Colors::White, 1);
+    m_buffer.drawBitmapText(18, 48, "SPACE: LAUNCH BALL / FIRE LASERS", Colors::White, 1);
+    m_buffer.drawBitmapText(18, 58, "P OR ESC: PAUSE / IN-GAME MENU", Colors::White, 1);
+    m_buffer.drawBitmapText(18, 68, "MOUSE: DIRECT GLIDE (CONFIGURABLE)", Colors::GrayLight, 1);
 
-    m_buffer.drawBitmapText(18, 88, "POWER-UP CAPSULES:", Colors::NeonYellow, 1);
+    m_buffer.drawBitmapText(18, 82, "POWER-UP CAPSULES:", Colors::NeonYellow, 1);
 
     struct PowerUpHelp {
         char icon;
         uint32_t color;
         const char* desc;
     };
-    PowerUpHelp items[6] = {
-        {'E', Colors::NeonGreen, "ELONGATE: EXTENDS PADDLE"},
-        {'M', Colors::NeonCyan,  "MULTI-BALL: 3-BALL SPLIT"},
-        {'F', Colors::NeonOrange,"FIREBALL: PIERCES BRICKS"},
-        {'L', Colors::NeonYellow,"LASERS: PRESS SPACE TO SHOOT"},
-        {'C', Colors::NeonPurple,"CATCH: STICKY PADDLE"},
-        {'+', Colors::BrickRed,  "+1 LIFE: EXTRA CHANCE"}
+    PowerUpHelp items[9] = {
+        {'E', Colors::NeonGreen,  "ELONGATE: EXTENDS PADDLE"},
+        {'S', Colors::NeonPink,   "SHRINK: NARROWS PADDLE (RISK)"},
+        {'M', Colors::NeonCyan,   "MULTI-BALL: 3-BALL SPLIT"},
+        {'F', Colors::NeonOrange, "FIREBALL: PIERCES BRICKS"},
+        {'L', Colors::NeonYellow, "LASERS: PRESS SPACE TO SHOOT"},
+        {'C', Colors::NeonPurple, "CATCH: STICKY PADDLE"},
+        {'Z', Colors::NeonBlue,   "SLOW-MO: REDUCES BALL SPEED"},
+        {'B', Colors::BrickCyan,  "SHIELD: BOTTOM SAFETY BARRIER"},
+        {'+', Colors::BrickRed,   "+1 LIFE: EXTRA CHANCE"}
     };
 
-    for (int i = 0; i < 6; ++i) {
-        int py = 104 + i * 14;
-        // Pill icon
-        m_buffer.fillRect(20, py, 12, 8, items[i].color);
+    for (int i = 0; i < 9; ++i) {
+        int py = 95 + i * 12;
+        // Pill icon (14x8)
+        m_buffer.fillRect(18, py, 14, 8, items[i].color);
         char iconStr[2] = {items[i].icon, '\0'};
-        m_buffer.drawBitmapText(23, py, iconStr, Colors::Black, 1);
-        m_buffer.drawBitmapText(38, py, items[i].desc, Colors::GrayLight, 1);
+        m_buffer.drawBitmapText(21, py, iconStr, Colors::Black, 1);
+        m_buffer.drawBitmapText(36, py, items[i].desc, Colors::GrayLight, 1);
     }
 
-    m_buffer.drawBitmapTextCentered(214, "PRESS SPACE OR ESCAPE TO RETURN", Colors::NeonCyan, 1);
+    m_buffer.drawBitmapTextCentered(216, "PRESS SPACE OR ESCAPE TO RETURN", Colors::NeonCyan, 1);
+}
+
+void GameEngine::renderAboutMenu() {
+    m_buffer.drawRect(8, 8, VIRTUAL_WIDTH - 16, VIRTUAL_HEIGHT - 16, Colors::NeonCyan);
+    m_buffer.drawBitmapTextCentered(16, "ABOUT RETRO BREAKOUT", Colors::NeonYellow, 1);
+    m_buffer.drawFastHLine(20, VIRTUAL_WIDTH - 20, 26, Colors::GridLine);
+
+    m_buffer.drawBitmapText(18, 34, "CROSS-PLATFORM RETRO ARCADE", Colors::White, 1);
+    m_buffer.drawBitmapText(18, 48, "C++20 & QT 6 (CORE/GUI/WIDGETS/MULTIMEDIA)", Colors::GrayMid, 1);
+
+    m_buffer.drawBitmapText(18, 68, "ENGINE ARCHITECTURE:", Colors::NeonCyan, 1);
+    m_buffer.drawBitmapText(18, 82, "- PURE SOFTWARE RASTER (320X240 ARGB)", Colors::GrayLight, 1);
+    m_buffer.drawBitmapText(18, 96, "- 4X SUB-STEPPED CCD PHYSICS ENGINE", Colors::GrayLight, 1);
+    m_buffer.drawBitmapText(18, 110, "- 44.1 KHZ ADDITIVE HARMONIC AUDIO", Colors::GrayLight, 1);
+    m_buffer.drawBitmapText(18, 124, "- REAL-TIME SCANLINE & PALETTE FILTERS", Colors::GrayLight, 1);
+    m_buffer.drawBitmapText(18, 138, "- WINDOWS, MACOS & LINUX NATIVE", Colors::NeonGreen, 1);
+
+    m_buffer.drawBitmapText(18, 158, "CONTROLS & SHORTCUTS:", Colors::NeonYellow, 1);
+    m_buffer.drawBitmapText(18, 172, "CTRL+1..4: ZOOM   CTRL+0: FIT   F11: FULLSCREEN", Colors::GrayLight, 1);
+    m_buffer.drawBitmapText(18, 186, "P / ESC: PAUSE    R: RESTART    SPACE: FIRE/LAUNCH", Colors::GrayLight, 1);
+
+    m_buffer.drawBitmapTextCentered(216, "PRESS SPACE OR ESCAPE TO RETURN", Colors::NeonCyan, 1);
 }
 
 void GameEngine::renderPauseMenu() {
@@ -1117,6 +1254,13 @@ void GameEngine::render() {
         return;
     }
 
+    if (m_state == GameState::AboutMenu) {
+        renderAboutMenu();
+        m_buffer.applyScanlineFilter(m_crtMode);
+        m_buffer.applyThemeFilter(m_paletteTheme);
+        return;
+    }
+
     // Active gameplay rendering
     m_buffer.drawFastVLine(PLAYFIELD_LEFT - 1, PLAYFIELD_TOP, PLAYFIELD_BOTTOM, Colors::BorderWall);
     m_buffer.drawFastVLine(PLAYFIELD_LEFT - 2, PLAYFIELD_TOP, PLAYFIELD_BOTTOM, Colors::BorderGlow);
@@ -1147,12 +1291,21 @@ void GameEngine::render() {
     }
 
     m_particles.render(m_buffer);
+    renderFloatingTexts();
 
     renderHUD();
     renderOverlays();
 
     if (m_state == GameState::Paused) {
         renderPauseMenu();
+    }
+
+    // Apply retro screen shake if active
+    if (m_shakeTimer > 0.0f) {
+        std::uniform_real_distribution<float> shakeDist(-m_shakeIntensity, m_shakeIntensity);
+        int sx = static_cast<int>(std::round(shakeDist(getEngineRng())));
+        int sy = static_cast<int>(std::round(shakeDist(getEngineRng())));
+        m_buffer.applyScreenShake(sx, sy);
     }
 
     m_buffer.applyScanlineFilter(m_crtMode);

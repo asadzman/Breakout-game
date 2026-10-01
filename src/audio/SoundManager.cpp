@@ -172,24 +172,51 @@ static std::vector<int16_t> synthNoise(float durationSec, float maxAmp = 18000.0
 
 class SoundManager::Impl {
 public:
+    struct SoundVoicePool {
+        std::vector<std::unique_ptr<QSoundEffect>> voices;
+        size_t nextVoice = 0;
+
+        void play(float volume) {
+            if (voices.empty()) return;
+            auto& v = voices[nextVoice];
+            nextVoice = (nextVoice + 1) % voices.size();
+            if (v) {
+                v->setVolume(volume);
+                v->play();
+            }
+        }
+
+        void setVolume(float volume) {
+            for (auto& v : voices) {
+                if (v) v->setVolume(volume);
+            }
+        }
+    };
+
     Impl() {
 #ifdef BREAKOUT_HAS_MULTIMEDIA
-        QString soundDir = QStandardPaths::writableLocation(QStandardPaths::TempLocation) + "/breakout_sounds_v2/";
+        QString soundDir = QStandardPaths::writableLocation(QStandardPaths::TempLocation) + "/breakout_sounds_v3/";
         QDir().mkpath(soundDir);
 
-        auto saveAndLoad = [&](SoundEffect eff, const std::vector<int16_t>& pcm, const QString& filename) {
+        auto saveAndLoad = [&](SoundEffect eff, const std::vector<int16_t>& pcm, const QString& filename, int voiceCount = 1) {
             QString path = soundDir + filename;
-            QByteArray wav = createWav(pcm, 44100);
-            QFile file(path);
-            if (file.open(QIODevice::WriteOnly)) {
-                file.write(wav);
-                file.close();
+            if (!QFile::exists(path)) {
+                QByteArray wav = createWav(pcm, 44100);
+                QFile file(path);
+                if (file.open(QIODevice::WriteOnly)) {
+                    file.write(wav);
+                    file.close();
+                }
             }
 
-            auto effect = std::make_unique<QSoundEffect>();
-            effect->setSource(QUrl::fromLocalFile(path));
-            effect->setVolume(0.8f);
-            m_soundEffects[eff] = std::move(effect);
+            SoundVoicePool pool;
+            for (int v = 0; v < voiceCount; ++v) {
+                auto effect = std::make_unique<QSoundEffect>();
+                effect->setSource(QUrl::fromLocalFile(path));
+                effect->setVolume(0.8f);
+                pool.voices.push_back(std::move(effect));
+            }
+            m_soundEffects[eff] = std::move(pool);
         };
 
         // Pentatonic C-major piano scale for satisfying musical brick breaks
@@ -207,29 +234,35 @@ public:
         for (int i = 0; i < 8; ++i) {
             QString fname = QString("ting_%1.wav").arg(i);
             QString path = soundDir + fname;
-            QByteArray wav = createWav(synthPianoTing(pianoNotes[i], 0.22f), 44100);
-            QFile file(path);
-            if (file.open(QIODevice::WriteOnly)) {
-                file.write(wav);
-                file.close();
+            if (!QFile::exists(path)) {
+                QByteArray wav = createWav(synthPianoTing(pianoNotes[i], 0.22f), 44100);
+                QFile file(path);
+                if (file.open(QIODevice::WriteOnly)) {
+                    file.write(wav);
+                    file.close();
+                }
             }
-            auto eff = std::make_unique<QSoundEffect>();
-            eff->setSource(QUrl::fromLocalFile(path));
-            eff->setVolume(0.8f);
-            m_brickTings.push_back(std::move(eff));
+            SoundVoicePool pool;
+            for (int v = 0; v < 2; ++v) {
+                auto eff = std::make_unique<QSoundEffect>();
+                eff->setSource(QUrl::fromLocalFile(path));
+                eff->setVolume(0.8f);
+                pool.voices.push_back(std::move(eff));
+            }
+            m_brickTings.push_back(std::move(pool));
         }
 
-        saveAndLoad(SoundEffect::PaddleHit, synthPaddleThud(240.0f, 0.08f), "paddle_thud.wav");
-        saveAndLoad(SoundEffect::BrickHit, synthPianoTing(783.99f, 0.20f), "brick_ting.wav");
-        saveAndLoad(SoundEffect::WallBounce, synthWallTick(0.035f), "wall_tick.wav");
-        saveAndLoad(SoundEffect::LaserFire, synthPianoTing(1046.50f, 0.07f, 16000.0f), "laser_chime.wav");
-        saveAndLoad(SoundEffect::PowerUpCollect, synthArpeggio({523.25f, 659.25f, 783.99f, 1046.50f}, 0.06f), "powerup_piano.wav");
-        saveAndLoad(SoundEffect::Explosion, synthNoise(0.24f), "explosion.wav");
-        saveAndLoad(SoundEffect::BallLost, synthPianoTing(196.00f, 0.35f, 24000.0f), "lost_bass.wav");
-        saveAndLoad(SoundEffect::LevelWon, synthArpeggio({523.25f, 659.25f, 783.99f, 1046.50f, 1318.51f}, 0.09f), "win_chime.wav");
-        saveAndLoad(SoundEffect::GameOver, synthArpeggio({392.00f, 349.23f, 329.63f, 261.63f}, 0.12f), "gameover_piano.wav");
-        saveAndLoad(SoundEffect::MenuSelect, synthPianoTing(880.00f, 0.06f, 16000.0f), "menu_ting.wav");
-        saveAndLoad(SoundEffect::MenuChange, synthPianoTing(659.25f, 0.05f, 14000.0f), "menu_subtle.wav");
+        saveAndLoad(SoundEffect::PaddleHit, synthPaddleThud(240.0f, 0.08f), "paddle_thud.wav", 2);
+        saveAndLoad(SoundEffect::BrickHit, synthPianoTing(783.99f, 0.20f), "brick_ting.wav", 2);
+        saveAndLoad(SoundEffect::WallBounce, synthWallTick(0.035f), "wall_tick.wav", 3);
+        saveAndLoad(SoundEffect::LaserFire, synthPianoTing(1046.50f, 0.07f, 16000.0f), "laser_chime.wav", 4);
+        saveAndLoad(SoundEffect::PowerUpCollect, synthArpeggio({523.25f, 659.25f, 783.99f, 1046.50f}, 0.06f), "powerup_piano.wav", 2);
+        saveAndLoad(SoundEffect::Explosion, synthNoise(0.24f), "explosion.wav", 3);
+        saveAndLoad(SoundEffect::BallLost, synthPianoTing(196.00f, 0.35f, 24000.0f), "lost_bass.wav", 1);
+        saveAndLoad(SoundEffect::LevelWon, synthArpeggio({523.25f, 659.25f, 783.99f, 1046.50f, 1318.51f}, 0.09f), "win_chime.wav", 1);
+        saveAndLoad(SoundEffect::GameOver, synthArpeggio({392.00f, 349.23f, 329.63f, 261.63f}, 0.12f), "gameover_piano.wav", 1);
+        saveAndLoad(SoundEffect::MenuSelect, synthPianoTing(880.00f, 0.06f, 16000.0f), "menu_ting.wav", 2);
+        saveAndLoad(SoundEffect::MenuChange, synthPianoTing(659.25f, 0.05f, 14000.0f), "menu_subtle.wav", 2);
 #endif
     }
 
@@ -238,9 +271,8 @@ public:
 
 #ifdef BREAKOUT_HAS_MULTIMEDIA
         auto it = m_soundEffects.find(eff);
-        if (it != m_soundEffects.end() && it->second) {
-            it->second->setVolume(volume);
-            it->second->play();
+        if (it != m_soundEffects.end()) {
+            it->second.play(volume);
         }
 #else
         (void)eff; (void)volume; (void)muted;
@@ -253,8 +285,7 @@ public:
 #ifdef BREAKOUT_HAS_MULTIMEDIA
         if (!m_brickTings.empty()) {
             size_t idx = static_cast<size_t>(std::abs(comboStep)) % m_brickTings.size();
-            m_brickTings[idx]->setVolume(volume);
-            m_brickTings[idx]->play();
+            m_brickTings[idx].play(volume);
         }
 #else
         (void)comboStep; (void)volume; (void)muted;
@@ -264,10 +295,10 @@ public:
     void updateVolume(float vol) {
 #ifdef BREAKOUT_HAS_MULTIMEDIA
         for (auto& pair : m_soundEffects) {
-            if (pair.second) pair.second->setVolume(vol);
+            pair.second.setVolume(vol);
         }
-        for (auto& eff : m_brickTings) {
-            if (eff) eff->setVolume(vol);
+        for (auto& pool : m_brickTings) {
+            pool.setVolume(vol);
         }
 #else
         (void)vol;
@@ -276,8 +307,8 @@ public:
 
 private:
 #ifdef BREAKOUT_HAS_MULTIMEDIA
-    std::map<SoundEffect, std::unique_ptr<QSoundEffect>> m_soundEffects;
-    std::vector<std::unique_ptr<QSoundEffect>> m_brickTings;
+    std::map<SoundEffect, SoundVoicePool> m_soundEffects;
+    std::vector<SoundVoicePool> m_brickTings;
 #endif
 };
 

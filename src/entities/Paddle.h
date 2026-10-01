@@ -18,9 +18,16 @@ public:
     void render(RasterBuffer& buffer) const;
 
     // Movement inputs
-    void setMoveLeft(bool active) { m_moveLeft = active; }
-    void setMoveRight(bool active) { m_moveRight = active; }
+    void setMoveLeft(bool active) {
+        m_moveLeft = active;
+        if (active) m_mouseControlActive = false;
+    }
+    void setMoveRight(bool active) {
+        m_moveRight = active;
+        if (active) m_mouseControlActive = false;
+    }
     void setTargetX(float x); // For mouse tracking
+    void triggerHitFlash() { m_flashTimer = 0.08f; }
 
     // Power-up state management
     void applyPowerUp(PowerUpType type, float duration = POWERUP_DURATION_SEC);
@@ -67,6 +74,7 @@ private:
     float m_stickyTimer = 0.0f;
 
     float m_widthTimer = 0.0f;
+    float m_flashTimer = 0.0f;
     PaddleSkin m_skin = PaddleSkin::Skateboard;
 };
 

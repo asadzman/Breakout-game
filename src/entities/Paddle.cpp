@@ -26,6 +26,7 @@ void Paddle::reset() {
     m_stickyTimer = 0.0f;
 
     m_widthTimer = 0.0f;
+    m_flashTimer = 0.0f;
 }
 
 void Paddle::setTargetX(float x) {
@@ -97,6 +98,9 @@ void Paddle::updatePowerUps(float dt) {
 
 void Paddle::update(float dt) {
     updatePowerUps(dt);
+    if (m_flashTimer > 0.0f) {
+        m_flashTimer = std::max(0.0f, m_flashTimer - dt);
+    }
 
     float prevX = m_pos.x;
 
@@ -242,6 +246,11 @@ void Paddle::render(RasterBuffer& buffer) const {
         buffer.drawFastHLine(px - 1, px + 1, py - 3, Colors::LaserRed);
         buffer.fillRect(px + pw - 2, py - 3, 3, 5, Colors::NeonYellow);
         buffer.drawFastHLine(px + pw - 2, px + pw, py - 3, Colors::LaserRed);
+    }
+
+    // Impact flash feedback
+    if (m_flashTimer > 0.0f) {
+        buffer.drawFastHLine(px, px + pw - 1, py, Colors::White);
     }
 }
 

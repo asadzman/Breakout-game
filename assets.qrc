@@ -1,0 +1,11 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+    <qresource prefix="/">
+        <file>assets/levels/level1.json</file>
+        <file>assets/levels/level2.json</file>
+        <file>assets/levels/level3.json</file>
+        <file>assets/levels/level4.json</file>
+        <file>assets/levels/level5.json</file>
+        <file>assets/levels/level6.json</file>
+    </qresource>
+</RCC>

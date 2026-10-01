@@ -12,17 +12,20 @@ static std::mt19937& getRng() {
 void ParticleSystem::update(float dt) {
     constexpr float GRAVITY = 120.0f; // Soft downward gravity for debris
 
-    for (auto it = m_particles.begin(); it != m_particles.end();) {
-        it->life -= dt;
-        if (it->life <= 0.0f) {
-            it = m_particles.erase(it);
-        } else {
-            it->pos += it->vel * dt;
-            it->vel.y += GRAVITY * dt;
-            it->vel *= 0.98f; // Air friction
-            ++it;
+    size_t activeCount = 0;
+    for (size_t i = 0; i < m_particles.size(); ++i) {
+        m_particles[i].life -= dt;
+        if (m_particles[i].life > 0.0f) {
+            m_particles[i].pos += m_particles[i].vel * dt;
+            m_particles[i].vel.y += GRAVITY * dt;
+            m_particles[i].vel *= 0.98f; // Air friction
+            if (activeCount != i) {
+                m_particles[activeCount] = m_particles[i];
+            }
+            ++activeCount;
         }
     }
+    m_particles.resize(activeCount);
 }
 
 void ParticleSystem::render(RasterBuffer& buffer) const {

@@ -10,8 +10,7 @@ find_package(Qt6 COMPONENTS Multimedia QUIET)
 
 qt_standard_project_setup()
 
-set(SOURCES
-    src/main.cpp
+set(GAME_CORE_SOURCES
     src/core/Config.h
     src/core/GameEngine.h
     src/core/GameEngine.cpp
@@ -38,6 +37,10 @@ set(SOURCES
     src/entities/Ball.cpp
     src/audio/SoundManager.h
     src/audio/SoundManager.cpp
+    assets.qrc
+)
+
+set(UI_SOURCES
     src/ui/RasterWidget.h
     src/ui/RasterWidget.cpp
     src/ui/MainWindow.h
@@ -46,7 +49,9 @@ set(SOURCES
 
 qt_add_executable(Breakout-game
     WIN32 MACOSX_BUNDLE
-    ${SOURCES}
+    src/main.cpp
+    ${GAME_CORE_SOURCES}
+    ${UI_SOURCES}
 )
 
 target_include_directories(Breakout-game
@@ -66,6 +71,25 @@ if(TARGET Qt6::Multimedia)
     target_compile_definitions(Breakout-game PRIVATE BREAKOUT_HAS_MULTIMEDIA)
 endif()
 
+if(MSVC)
+    target_compile_options(Breakout-game PRIVATE /W4 /permissive-)
+else()
+    target_compile_options(Breakout-game PRIVATE -Wall -Wextra)
+endif()
+
+if(APPLE)
+    set_target_properties(Breakout-game PROPERTIES
+        MACOSX_BUNDLE_BUNDLE_NAME "Retro Breakout"
+        MACOSX_BUNDLE_GUI_IDENTIFIER "com.retroarcade.breakout"
+    )
+    # Ensure macOS app bundle contains assets in Contents/Resources
+    add_custom_command(TARGET Breakout-game POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_CURRENT_SOURCE_DIR}/assets
+        $<TARGET_BUNDLE_DIR:Breakout-game>/Contents/Resources/assets
+    )
+endif()
+
 # Copy assets to build directory for easy relative loading
 add_custom_target(copy_assets ALL
     ${CMAKE_COMMAND} -E copy_directory
@@ -73,3 +97,36 @@ add_custom_target(copy_assets ALL
     ${CMAKE_CURRENT_BINARY_DIR}/assets
 )
 add_dependencies(Breakout-game copy_assets)
+
+# ----------------- Automated Unit Tests -----------------
+enable_testing()
+
+add_executable(Breakout-tests
+    tests/test_main.cpp
+    ${GAME_CORE_SOURCES}
+)
+
+target_include_directories(Breakout-tests
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+
+target_link_libraries(Breakout-tests
+    PRIVATE
+        Qt6::Core
+        Qt6::Gui
+)
+
+if(TARGET Qt6::Multimedia)
+    target_link_libraries(Breakout-tests PRIVATE Qt6::Multimedia)
+    target_compile_definitions(Breakout-tests PRIVATE BREAKOUT_HAS_MULTIMEDIA)
+endif()
+
+if(MSVC)
+    target_compile_options(Breakout-tests PRIVATE /W4 /permissive-)
+else()
+    target_compile_options(Breakout-tests PRIVATE -Wall -Wextra)
+endif()
+
+add_dependencies(Breakout-tests copy_assets)
+add_test(NAME AllUnitTests COMMAND Breakout-tests)

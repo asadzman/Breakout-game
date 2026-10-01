@@ -105,7 +105,7 @@ void RasterWidget::keyPressEvent(QKeyEvent* event) {
     GameState state = m_engine.getState();
     bool inMenu = (state == GameState::MainMenu || state == GameState::LevelSelect ||
                    state == GameState::OptionsMenu || state == GameState::HelpMenu ||
-                   state == GameState::Paused);
+                   state == GameState::AboutMenu || state == GameState::Paused);
 
     switch (event->key()) {
         case Qt::Key_Up:

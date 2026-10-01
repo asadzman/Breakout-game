@@ -44,6 +44,15 @@ public:
     void startNewGame();
     void selectAndStartLevel(int levelIdx);
 
+    // Direct in-game menu openers (used by MainWindow and shortcuts)
+    void openMainMenu();
+    void openOptionsMenu();
+    void openLevelSelect();
+    void openHelpMenu();
+    void openAboutMenu();
+
+    void triggerScreenShake(float duration = 0.18f, float intensity = 2.5f);
+
     // Dynamic settings getters & setters
     void setDifficultyMultiplier(float mult);
     [[nodiscard]] float getDifficultyMultiplier() const { return m_difficultyMultiplier; }
@@ -82,14 +91,24 @@ public:
     [[nodiscard]] int getCurrentLevelIndex() const { return m_levelManager.getCurrentLevelIndex(); }
 
 private:
+    struct FloatingText {
+        Vec2 pos;
+        std::string text;
+        uint32_t color;
+        float life = 0.8f;
+        float maxLife = 0.8f;
+    };
+
     void updatePhysicsSubSteps(float dt);
     void updateLasers(float dt);
     void updatePowerUps(float dt);
+    void updateFloatingTexts(float dt);
     void handleBallLost();
     void onBrickHit(Brick& brick, Vec2 hitPoint, bool destroyed);
     void triggerExplosiveChain(Vec2 center, float radius);
     void spawnRandomPowerUp(Vec2 pos);
     void activatePowerUp(PowerUpType type);
+    void spawnFloatingScore(Vec2 pos, std::string text, uint32_t color);
 
     // In-game screen renderers
     void renderHUD();
@@ -98,10 +117,14 @@ private:
     void renderLevelSelect();
     void renderOptionsMenu();
     void renderHelpMenu();
+    void renderAboutMenu();
     void renderPauseMenu();
+    void renderFloatingTexts();
 
     void loadHighScore();
     void saveHighScore();
+    void loadSettings();
+    void saveSettings();
 
     RasterBuffer m_buffer;
     ParticleSystem m_particles;
@@ -109,6 +132,7 @@ private:
     std::vector<Ball> m_balls;
     std::vector<Laser> m_lasers;
     std::vector<PowerUp> m_powerUps;
+    std::vector<FloatingText> m_floatingTexts;
     LevelManager m_levelManager;
 
     GameState m_state = GameState::MainMenu;
@@ -136,6 +160,10 @@ private:
     PaletteTheme m_paletteTheme = PaletteTheme::NeonArcade;
     PaddleSkin m_paddleSkin = PaddleSkin::Skateboard;
     BallSkin m_ballSkin = BallSkin::EnergyOrb;
+
+    // Screen shake feedback
+    float m_shakeTimer = 0.0f;
+    float m_shakeIntensity = 0.0f;
 };
 
 } // namespace Breakout

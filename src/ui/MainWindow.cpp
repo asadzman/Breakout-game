@@ -4,7 +4,6 @@
 #include <QMenuBar>
 #include <QMenu>
 #include <QAction>
-#include <QMessageBox>
 #include <QKeySequence>
 
 namespace Breakout {
@@ -43,23 +42,18 @@ void MainWindow::toggleProportionalFit() {
 
 void MainWindow::openInGameOptions() {
     auto& engine = m_rasterWidget->getEngine();
-    GameState s = engine.getState();
-    if (s != GameState::OptionsMenu) {
-        if (s == GameState::Playing) {
-            engine.togglePause();
-        }
-        engine.menuConfirm(); // Enters options menu
+    if (engine.getState() == GameState::Playing) {
+        engine.togglePause();
     }
+    engine.openOptionsMenu();
 }
 
 void MainWindow::openInGameLevelSelect() {
     auto& engine = m_rasterWidget->getEngine();
-    GameState s = engine.getState();
-    if (s == GameState::Playing) {
+    if (engine.getState() == GameState::Playing) {
         engine.togglePause();
     }
-    engine.menuDown();
-    engine.menuConfirm();
+    engine.openLevelSelect();
 }
 
 void MainWindow::setupMenus() {
@@ -134,33 +128,19 @@ void MainWindow::setupMenus() {
 }
 
 void MainWindow::showInstructions() {
-    QMessageBox::information(
-        this,
-        "How to Play",
-        "<h3>Retro Breakout Controls & Rules</h3>"
-        "<ul>"
-        "<li><b>Left / Right Arrows</b> or <b>A / D</b>: Move Paddle</li>"
-        "<li><b>Mouse Cursor</b>: Glide paddle smoothly to cursor (configurable in Settings)</li>"
-        "<li><b>Spacebar / Enter</b>: Launch Ball / Fire Lasers / Confirm Menu</li>"
-        "<li><b>P or Escape</b>: Pause / Seamless In-Game Menu</li>"
-        "<li><b>R</b>: Quick restart stage</li>"
-        "<li><b>F11</b>: Toggle Fullscreen</li>"
-        "</ul>"
-        "<h4>Seamless In-Game Menus:</h4>"
-        "<p>All settings (speed, lives, CRT scanlines, theme, volume) are seamlessly accessible in-game via the main menu or pause menu!</p>"
-    );
+    auto& engine = m_rasterWidget->getEngine();
+    if (engine.getState() == GameState::Playing) {
+        engine.togglePause();
+    }
+    engine.openHelpMenu();
 }
 
 void MainWindow::showAbout() {
-    QMessageBox::about(
-        this,
-        "About Retro Breakout",
-        "<h3>Retro Breakout</h3>"
-        "<p>Built with <b>Qt 6</b> and <b>C++20</b>.</p>"
-        "<p>Features a <b>pure software raster grid</b> (320x240 internal framebuffer, "
-        "no OpenGL, no vector graphics), sub-stepped arcade continuous collision physics, "
-        "and seamless in-game retro UI navigation.</p>"
-    );
+    auto& engine = m_rasterWidget->getEngine();
+    if (engine.getState() == GameState::Playing) {
+        engine.togglePause();
+    }
+    engine.openAboutMenu();
 }
 
 } // namespace Breakout

@@ -23,6 +23,7 @@ public:
 
     // Load level by index (0-based)
     bool loadLevel(int index);
+    bool peekLevel(int index, LevelData& outLevel);
 
     // Progression
     bool advanceLevel();

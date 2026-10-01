@@ -34,8 +34,8 @@ constexpr float LASER_WIDTH = 2.0f;
 constexpr float LASER_HEIGHT = 6.0f;
 
 // Power-up capsule parameters
-constexpr float POWERUP_WIDTH = 14.0f;
-constexpr float POWERUP_HEIGHT = 7.0f;
+constexpr float POWERUP_WIDTH = 16.0f;
+constexpr float POWERUP_HEIGHT = 10.0f;
 constexpr float POWERUP_FALL_SPEED = 55.0f;
 constexpr float POWERUP_DURATION_SEC = 12.0f;
 
@@ -80,13 +80,14 @@ enum class GameState {
     LevelSelect,    // Interactive stage select with preview
     OptionsMenu,    // In-game options: speed, lives, scanlines, theme, board/ball presets, audio, mouse
     HelpMenu,       // How to play & power-up guide
-    Ready,       // Ball on paddle, waiting for Space/Launch
-    Playing,     // Ball active
-    Paused,      // In-game pause menu (Resume, Restart, Options, Levels, Menu)
-    BallLost,    // Life lost, short respawn pause
-    GameOver,    // All lives lost
-    LevelWon,    // Level cleared, showing victory message
-    GameCompleted// All levels beaten
+    AboutMenu,      // Retro credits & engine architecture
+    Ready,          // Ball on paddle, waiting for Space/Launch
+    Playing,        // Ball active
+    Paused,         // In-game pause menu (Resume, Restart, Options, Levels, Menu)
+    BallLost,       // Life lost, short respawn pause
+    GameOver,       // All lives lost
+    LevelWon,       // Level cleared, showing victory message
+    GameCompleted   // All levels beaten
 };
 
 enum class PowerUpType {

@@ -38,12 +38,12 @@ void PowerUp::render(RasterBuffer& buffer) const {
     buffer.drawFastHLine(px + 2, px + w - 3, py + 1, Colors::White);
 
     // Inner dark center
-    buffer.fillRect(px + 3, py + 2, w - 6, h - 4, Colors::Black);
+    buffer.fillRect(px + 2, py + 1, w - 4, h - 2, Colors::Black);
 
     // Single-char letter icon
     char icon = getIcon(m_type);
     char str[2] = {icon, '\0'};
-    buffer.drawBitmapText(px + (w - 8) / 2, py + (h - 8) / 2, str, Colors::White, 1);
+    buffer.drawBitmapText(px + (w - 8) / 2, py + (h - 8) / 2, str, col, 1);
 }
 
 AABB PowerUp::getBounds() const {

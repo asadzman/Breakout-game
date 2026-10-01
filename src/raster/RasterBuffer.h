@@ -71,6 +71,7 @@ public:
     // Retro post-processing filter passes
     void applyScanlineFilter(CrtScanlineMode mode);
     void applyThemeFilter(PaletteTheme theme);
+    void applyScreenShake(int dx, int dy);
 
 private:
     int m_width;
