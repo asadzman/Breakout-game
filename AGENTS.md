@@ -48,10 +48,15 @@ Breakout-game/
 ├── .clangd                     # Compilation database config for Neovim/LSPs
 ├── .editorconfig               # Formatting rules (4 spaces, LF, trim whitespace)
 ├── CMakeLists.txt              # Modern C++20 build with compile_commands export
-├── README.md                   # User guide, controls, build instructions
+├── README.md                   # User guide, controls, screenshots, and features
+├── BUILD.md                    # Detailed multi-platform build and multi-IDE setup
 ├── PLAN.md                     # Initial architectural specification
 ├── AGENTS.md                   # This instruction file
 ├── assets/
+│   ├── demos/                  # Animated gameplay GIFs and demo recordings
+│   │   ├── gameplay.gif
+│   │   └── gameplay.mp4
+│   ├── screenshots/            # Static promotional arcade screenshots
 │   └── levels/                 # JSON level declarations
 │       ├── level1.json
 │       ├── level2.json

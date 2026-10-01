@@ -4,9 +4,16 @@ An arcade-authentic Breakout game built in **C++20** and **Qt 6**, designed from
 
 ---
 
-## 🕹️ Screenshots & Gameplay Demos
+## 🕹️ Live Demo & Gameplay
 
-| Main Menu (Pure Raster Grid) | Stage 1: Neon Horizon |
+<div align="center">
+  <img src="assets/demos/gameplay.gif" alt="Retro Breakout Gameplay Demo" width="640" />
+  <p><em>60 FPS Pure Software Raster Framebuffer with Dynamic Paddle Deflection, Particle Sparks, and Combo Sound Synthesis</em></p>
+</div>
+
+### Arcade Screenshots & Palettes
+
+| Main Menu (CRT Scanlines) | Stage 1: Neon Horizon |
 | :---: | :---: |
 | ![Main Menu](assets/screenshots/demo_main_menu.png) | ![Gameplay Neon](assets/screenshots/demo_gameplay_neon.png) |
 
@@ -101,68 +108,30 @@ An arcade-authentic Breakout game built in **C++20** and **Qt 6**, designed from
 
 ---
 
-## Building from Source
+## Quick Start & Build
 
-### Prerequisites
-- Modern C++ compiler supporting **C++20** (Apple Clang 15+, GCC 12+, Clang 15+, MSVC 2022+)
-- **CMake** 3.19 or higher
-- **Qt 6** (Qt6 Core, Gui, Widgets, optional Multimedia)
-
-### Build Commands
+For full multi-platform instructions (macOS, Linux, Windows) and detailed IDE configuration (Neovim with `clangd`, VS Code, CLion, Qt Creator), see **[BUILD.md](BUILD.md)**.
 
 ```bash
-# 1. Clone repository
-git clone https://github.com/your-username/Breakout-game.git
+# 1. Clone & enter repository
+git clone https://github.com/<owner>/Breakout-game.git
 cd Breakout-game
 
-# 2. Configure build with compile commands exported
+# 2. Configure with compilation database exported for IDEs
 cmake -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 
-# 3. Build project
-cmake --build build -j$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)
+# 3. Build executable
+cmake --build build -j
+
+# 4. Launch game
+./build/Breakout-game.app/Contents/MacOS/Breakout-game  # macOS
+./build/Breakout-game                                  # Linux / Windows
 ```
 
-### Running the Game
-
-- **macOS**:
-  ```bash
-  ./build/Breakout-game.app/Contents/MacOS/Breakout-game
-  ```
-- **Linux / Windows**:
-  ```bash
-  ./build/Breakout-game
-  ```
-
----
-
-## IDE & Neovim (`clangd`) Integration
-
-This repository includes a configured [`.clangd`](file:///.clangd) file that automatically points language servers to `build/compile_commands.json`:
-
-```yaml
-CompileFlags:
-  CompilationDatabase: "build"
-  Add:
-    - -std=c++20
-    - -Wall
-    - -Wextra
-    - -Wno-unused-parameter
-
-Diagnostics:
-  UnusedIncludes: Strict
-
-InlayHints:
-  Enabled: true
-  ParameterNames: true
-  DeducedTypes: true
+*(Optional) Regenerate promotional screenshots and animated demos:*
+```bash
+./build/Breakout-game.app/Contents/MacOS/Breakout-game --generate-demos
 ```
-
-### Neovim Setup
-Whether using `nvim-lspconfig`, `Mason`, or `coc-clangd`, simply ensure `build` is configured once (`cmake -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON`).
-When opening any C++ file in Neovim, `clangd` will automatically pick up the compile flags, Qt 6 include headers, and definitions with **zero diagnostic errors**.
-
-### Formatting
-A [`.editorconfig`](file:///.editorconfig) is included to enforce 4-space indentation, UTF-8 encoding, and trailing whitespace cleanup across all text editors.
 
 ---
 

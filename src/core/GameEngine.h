@@ -69,6 +69,9 @@ public:
     [[nodiscard]] const RasterBuffer& getBuffer() const { return m_buffer; }
     [[nodiscard]] RasterBuffer& getBuffer() { return m_buffer; }
 
+    [[nodiscard]] const Paddle& getPaddle() const { return m_paddle; }
+    [[nodiscard]] const std::vector<Ball>& getBalls() const { return m_balls; }
+
     [[nodiscard]] int getTotalLevels() const { return m_levelManager.getTotalLevels(); }
     [[nodiscard]] int getCurrentLevelIndex() const { return m_levelManager.getCurrentLevelIndex(); }
 
