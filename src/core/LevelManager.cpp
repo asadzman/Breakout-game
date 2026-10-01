@@ -40,9 +40,9 @@ void LevelManager::discoverLevels(const std::string& assetsPath) {
         }
     }
 
-    // If no level files found on disk, register 4 embedded fallback levels
+    // If no level files found on disk, register 6 embedded fallback levels
     if (m_levelPaths.empty()) {
-        m_levelPaths = {"embedded://1", "embedded://2", "embedded://3", "embedded://4"};
+        m_levelPaths = {"embedded://1", "embedded://2", "embedded://3", "embedded://4", "embedded://5", "embedded://6"};
     }
 }
 
@@ -150,7 +150,7 @@ void LevelManager::loadEmbeddedLevel(int index, LevelData& outLevel) {
             "2222222222",
             ".E..PP..E."
         };
-    } else {
+    } else if (index == 3) {
         outLevel.name = "STAGE 4: CITADEL MATRIX";
         rows = {
             "X3X3X3X3X3",
@@ -159,6 +159,32 @@ void LevelManager::loadEmbeddedLevel(int index, LevelData& outLevel) {
             "1111111111",
             "EPPEEPPEEP",
             "X..X..X..X"
+        };
+    } else if (index == 4) {
+        outLevel.name = "STAGE 5: CYBER DIAMOND";
+        rows = {
+            "....22....",
+            "...2EE2...",
+            "..21PP12..",
+            ".21EEEE12.",
+            "211PPPP112",
+            ".21EEEE12.",
+            "..21PP12..",
+            "...2EE2...",
+            "....22...."
+        };
+    } else {
+        outLevel.name = "STAGE 6: SUPERNOVA CASCADE";
+        rows = {
+            "E11E11E11E",
+            "1221PP1221",
+            "12E2112E21",
+            "E122EE221E",
+            "PPP1221PPP",
+            "E122EE221E",
+            "12E2112E21",
+            "1221PP1221",
+            "E11E11E11E"
         };
     }
 

@@ -61,7 +61,9 @@ Breakout-game/
 │       ├── level1.json
 │       ├── level2.json
 │       ├── level3.json
-│       └── level4.json
+│       ├── level4.json
+│       ├── level5.json
+│       └── level6.json
 └── src/
     ├── main.cpp                # Application entrypoint
     ├── core/

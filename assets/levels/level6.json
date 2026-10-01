@@ -1,0 +1,27 @@
+{
+  "name": "STAGE 6: SUPERNOVA CASCADE",
+  "brickWidth": 28,
+  "brickHeight": 9,
+  "startX": 14,
+  "startY": 26,
+  "spacingX": 2,
+  "spacingY": 2,
+  "rows": [
+    "E11E11E11E",
+    "1221PP1221",
+    "12E2112E21",
+    "E122EE221E",
+    "PPP1221PPP",
+    "E122EE221E",
+    "12E2112E21",
+    "1221PP1221",
+    "E11E11E11E"
+  ],
+  "legend": {
+    ".": "empty",
+    "1": { "type": "normal", "hp": 1, "color": "0xFF70B8FF" },
+    "2": { "type": "armored", "hp": 2, "color": "0xFFFFAB00" },
+    "E": { "type": "explosive", "hp": 1, "color": "0xFFFF1744" },
+    "P": { "type": "powerup", "hp": 1, "color": "0xFF00E676" }
+  }
+}

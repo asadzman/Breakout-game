@@ -60,6 +60,12 @@ public:
     void setMouseControlEnabled(bool enabled) { m_mouseControlEnabled = enabled; }
     [[nodiscard]] bool isMouseControlEnabled() const { return m_mouseControlEnabled; }
 
+    void setPaddleSkin(PaddleSkin skin);
+    [[nodiscard]] PaddleSkin getPaddleSkin() const { return m_paddleSkin; }
+
+    void setBallSkin(BallSkin skin);
+    [[nodiscard]] BallSkin getBallSkin() const { return m_ballSkin; }
+
     // State queries
     [[nodiscard]] GameState getState() const { return m_state; }
     [[nodiscard]] int getScore() const { return m_score; }
@@ -90,6 +96,7 @@ private:
     void renderOverlays();
     void renderMainMenu();
     void renderLevelSelect();
+    void renderCustomizeMenu();
     void renderOptionsMenu();
     void renderHelpMenu();
     void renderPauseMenu();
@@ -121,6 +128,7 @@ private:
     int m_pauseMenuIndex = 0;
     int m_optionsMenuIndex = 0;
     int m_levelSelectIndex = 0;
+    int m_customizeMenuIndex = 0;
 
     // Modifiers & settings
     float m_difficultyMultiplier = 1.0f;
@@ -128,6 +136,8 @@ private:
     bool m_mouseControlEnabled = true;
     CrtScanlineMode m_crtMode = CrtScanlineMode::Subtle;
     PaletteTheme m_paletteTheme = PaletteTheme::NeonArcade;
+    PaddleSkin m_paddleSkin = PaddleSkin::Skateboard;
+    BallSkin m_ballSkin = BallSkin::EnergyOrb;
 };
 
 } // namespace Breakout

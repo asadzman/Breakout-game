@@ -30,12 +30,16 @@ public:
     std::vector<Laser> tryFireLasers();
 
     [[nodiscard]] Vec2 getPosition() const { return m_pos; }
+    void setPosition(const Vec2& pos) { m_pos = pos; }
     [[nodiscard]] float getWidth() const { return m_width; }
     [[nodiscard]] float getHeight() const { return m_height; }
     [[nodiscard]] float getVelocityX() const { return m_vx; }
     [[nodiscard]] bool isSticky() const { return m_isSticky; }
     [[nodiscard]] bool hasLaser() const { return m_hasLaser; }
     [[nodiscard]] AABB getBounds() const;
+
+    void setSkin(PaddleSkin skin) { m_skin = skin; }
+    [[nodiscard]] PaddleSkin getSkin() const { return m_skin; }
 
     // Active power-up remaining time queries for HUD
     [[nodiscard]] float getLaserTimeRemaining() const { return m_laserTimer; }
@@ -63,6 +67,7 @@ private:
     float m_stickyTimer = 0.0f;
 
     float m_widthTimer = 0.0f;
+    PaddleSkin m_skin = PaddleSkin::Skateboard;
 };
 
 } // namespace Breakout

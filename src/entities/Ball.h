@@ -39,6 +39,9 @@ public:
     void stickToPaddle(float offsetFromPaddleCenter);
     void kill() { m_alive = false; }
 
+    void setSkin(BallSkin skin) { m_skin = skin; }
+    [[nodiscard]] BallSkin getSkin() const { return m_skin; }
+
     // Check boundary collisions against arena borders
     // Returns 1 if hit left/right, 2 if hit ceiling, -1 if fell in bottom pit
     int checkArenaBoundaries();
@@ -59,6 +62,8 @@ private:
     float m_fireballTimer = 0.0f;
 
     std::deque<Vec2> m_trail; // Motion trail history
+    BallSkin m_skin = BallSkin::EnergyOrb;
+    float m_animTimer = 0.0f;
 };
 
 } // namespace Breakout

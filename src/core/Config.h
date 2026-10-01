@@ -76,10 +76,11 @@ constexpr uint32_t BrickGold   = 0xFFFFB300;
 } // namespace Colors
 
 enum class GameState {
-    MainMenu,    // Retro title & main options: Start, Levels, Settings, Help, Quit
-    LevelSelect, // Interactive stage select with preview
-    OptionsMenu, // Seamless in-game options: speed, lives, scanlines, theme, volume, mouse
-    HelpMenu,    // How to play & power-up guide
+    MainMenu,       // Retro title & main options: Start, Levels, Skins, Settings, Help, Quit
+    LevelSelect,    // Interactive stage select with preview
+    CustomizeSkins, // Skateboard & ball skin customizer with live preview
+    OptionsMenu,    // Seamless in-game options: speed, lives, scanlines, theme, volume, mouse
+    HelpMenu,       // How to play & power-up guide
     Ready,       // Ball on paddle, waiting for Space/Launch
     Playing,     // Ball active
     Paused,      // In-game pause menu (Resume, Restart, Options, Levels, Menu)
@@ -117,4 +118,19 @@ enum class CrtScanlineMode {
     Arcade
 };
 
+enum class PaddleSkin {
+    Skateboard = 0, // Street skateboard with deck stripe & urethane wheels
+    ClassicArcade,  // Sleek beveled neon laser capsule
+    CyberHover,     // High-tech hover jet with side thrusters
+    RetroWood       // Vintage mahogany wood grain deck
+};
+
+enum class BallSkin {
+    EnergyOrb = 0,  // Classic glowing sphere with bright core
+    PlasmaCore,     // Pulsing electric plasma orb
+    NeonDiamond,    // Sparkling 4-point rotating geometric diamond
+    CyberCube       // Retro 3D wireframe pixel cube
+};
+
 } // namespace Breakout
+

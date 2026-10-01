@@ -267,14 +267,14 @@ void RasterBuffer::applyThemeFilter(PaletteTheme theme) {
                 else if (hue < 270.0f)                 m_pixels[i] = 0xFF83A598; // Blue
                 else                                   m_pixels[i] = 0xFFD3869B; // Purple
             } else if (theme == PaletteTheme::NeovimDefault) {
-                // Quack/Neovim palette mapping
-                if (hue < 20.0f || hue >= 335.0f)     m_pixels[i] = 0xFFFF5F5F; // Red (Removed/Error #ff5f5f)
-                else if (hue < 50.0f)                  m_pixels[i] = 0xFFFFD787; // Amber/Orange (dirSize #ffd787)
-                else if (hue < 85.0f)                  m_pixels[i] = 0xFFFCE094; // Yellow (Warning/Search #fce094)
-                else if (hue < 165.0f)                 m_pixels[i] = 0xFFB3F6C0; // Green (String/ModeMsg #b3f6c0)
-                else if (hue < 205.0f)                 m_pixels[i] = 0xFF8CF8F7; // Cyan (Directory/Special #8cf8f7)
-                else if (hue < 270.0f)                 m_pixels[i] = 0xFFA6DBFF; // Blue (Identifier #a6dbff)
-                else                                   m_pixels[i] = 0xFFD787D7; // Magenta (PmenuMatch #d787d7)
+                // Cool Green-Blue Neovim Aesthetic (Mint Green, Electric Cyan, Sky Blue, Dark Slate)
+                if (hue < 35.0f || hue >= 330.0f)      m_pixels[i] = 0xFF8CF8F7; // Electric Cyan (Nvim commands & logo)
+                else if (hue < 75.0f)                  m_pixels[i] = 0xFFFCE094; // Soft Gold accent (prompt highlight)
+                else if (hue < 155.0f)                 m_pixels[i] = 0xFFB3F6C0; // Mint / Seafoam Green (Nvim logo & version)
+                else if (hue < 195.0f)                 m_pixels[i] = 0xFF5FD7AF; // Spring Aqua / Teal
+                else if (hue < 240.0f)                 m_pixels[i] = 0xFF70B8FF; // Sky Blue (command links)
+                else if (hue < 290.0f)                 m_pixels[i] = 0xFFA6DBFF; // Soft Ice Blue
+                else                                   m_pixels[i] = 0xFF8CF8F7; // Ice Cyan
             } else if (theme == PaletteTheme::DarkOled) {
                 if (hue < 20.0f || hue >= 335.0f)     m_pixels[i] = 0xFFFF0055; // Neon Red
                 else if (hue < 50.0f)                  m_pixels[i] = 0xFFFF6600; // Neon Orange

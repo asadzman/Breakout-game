@@ -31,9 +31,19 @@ static void generateDemoScreenshots() {
         saveFrame(engine, "assets/screenshots/demo_stage_select.png");
     }
 
-    // 3. Options Menu (Quack / Neovim Palette)
+    // 3. Customize Skins Menu
     {
         Breakout::GameEngine engine;
+        engine.menuDown();
+        engine.menuDown();
+        engine.menuConfirm();
+        saveFrame(engine, "assets/screenshots/demo_customize_menu.png");
+    }
+
+    // 4. Options Menu (Neovim Palette)
+    {
+        Breakout::GameEngine engine;
+        engine.menuDown();
         engine.menuDown();
         engine.menuDown();
         engine.menuConfirm();
@@ -78,6 +88,7 @@ static void generateDemoScreenshots() {
         QDir().mkpath("scratch/gif_frames");
 
         Breakout::GameEngine engine;
+        engine.setPaddleSkin(Breakout::PaddleSkin::Skateboard);
         engine.startNewGame();
         engine.actionLaunchOrShoot();
 

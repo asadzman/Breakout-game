@@ -1,0 +1,27 @@
+{
+  "name": "STAGE 5: CYBER DIAMOND",
+  "brickWidth": 28,
+  "brickHeight": 9,
+  "startX": 14,
+  "startY": 26,
+  "spacingX": 2,
+  "spacingY": 2,
+  "rows": [
+    "....22....",
+    "...2EE2...",
+    "..21PP12..",
+    ".21EEEE12.",
+    "211PPPP112",
+    ".21EEEE12.",
+    "..21PP12..",
+    "...2EE2...",
+    "....22...."
+  ],
+  "legend": {
+    ".": "empty",
+    "1": { "type": "normal", "hp": 1, "color": "0xFF00E5FF" },
+    "2": { "type": "armored", "hp": 2, "color": "0xFFFFD600" },
+    "E": { "type": "explosive", "hp": 1, "color": "0xFFFF3D00" },
+    "P": { "type": "powerup", "hp": 1, "color": "0xFF00FFCC" }
+  }
+}

@@ -64,10 +64,12 @@ void GameEngine::restartCurrentLevel() {
     m_powerUps.clear();
     m_particles.clear();
     m_paddle.reset();
+    m_paddle.setSkin(m_paddleSkin);
     m_hasShield = false;
 
     m_balls.clear();
     Ball mainBall;
+    mainBall.setSkin(m_ballSkin);
     mainBall.resetOnPaddle(m_paddle.getPosition().x + m_paddle.getWidth() * 0.5f, m_paddle.getPosition().y);
     mainBall.setSlow(m_difficultyMultiplier < 0.95f, m_difficultyMultiplier);
     m_balls.push_back(mainBall);
@@ -90,6 +92,18 @@ void GameEngine::setStartingLives(int lives) {
     }
 }
 
+void GameEngine::setPaddleSkin(PaddleSkin skin) {
+    m_paddleSkin = skin;
+    m_paddle.setSkin(skin);
+}
+
+void GameEngine::setBallSkin(BallSkin skin) {
+    m_ballSkin = skin;
+    for (auto& b : m_balls) {
+        b.setSkin(skin);
+    }
+}
+
 void GameEngine::setMoveLeft(bool active) {
     m_paddle.setMoveLeft(active);
 }
@@ -108,11 +122,13 @@ void GameEngine::setMouseTargetX(float x) {
 void GameEngine::menuUp() {
     SoundManager::instance().play(SoundEffect::MenuSelect);
     if (m_state == GameState::MainMenu) {
-        m_mainMenuIndex = (m_mainMenuIndex + 4) % 5;
+        m_mainMenuIndex = (m_mainMenuIndex + 5) % 6;
+    } else if (m_state == GameState::CustomizeSkins) {
+        m_customizeMenuIndex = (m_customizeMenuIndex + 2) % 3;
     } else if (m_state == GameState::Paused) {
         m_pauseMenuIndex = (m_pauseMenuIndex + 4) % 5;
     } else if (m_state == GameState::OptionsMenu) {
-        m_optionsMenuIndex = (m_optionsMenuIndex + 6) % 7;
+        m_optionsMenuIndex = (m_optionsMenuIndex + 8) % 9;
     } else if (m_state == GameState::LevelSelect) {
         m_levelSelectIndex = (m_levelSelectIndex + m_levelManager.getTotalLevels() - 1) % m_levelManager.getTotalLevels();
     }
@@ -121,11 +137,13 @@ void GameEngine::menuUp() {
 void GameEngine::menuDown() {
     SoundManager::instance().play(SoundEffect::MenuSelect);
     if (m_state == GameState::MainMenu) {
-        m_mainMenuIndex = (m_mainMenuIndex + 1) % 5;
+        m_mainMenuIndex = (m_mainMenuIndex + 1) % 6;
+    } else if (m_state == GameState::CustomizeSkins) {
+        m_customizeMenuIndex = (m_customizeMenuIndex + 1) % 3;
     } else if (m_state == GameState::Paused) {
         m_pauseMenuIndex = (m_pauseMenuIndex + 1) % 5;
     } else if (m_state == GameState::OptionsMenu) {
-        m_optionsMenuIndex = (m_optionsMenuIndex + 1) % 7;
+        m_optionsMenuIndex = (m_optionsMenuIndex + 1) % 9;
     } else if (m_state == GameState::LevelSelect) {
         m_levelSelectIndex = (m_levelSelectIndex + 1) % m_levelManager.getTotalLevels();
     }
@@ -135,6 +153,16 @@ void GameEngine::menuLeft() {
     if (m_state == GameState::LevelSelect) {
         SoundManager::instance().play(SoundEffect::MenuChange);
         m_levelSelectIndex = (m_levelSelectIndex + m_levelManager.getTotalLevels() - 1) % m_levelManager.getTotalLevels();
+        return;
+    }
+
+    if (m_state == GameState::CustomizeSkins) {
+        SoundManager::instance().play(SoundEffect::MenuChange);
+        if (m_customizeMenuIndex == 0) {
+            setPaddleSkin(static_cast<PaddleSkin>((static_cast<int>(m_paddleSkin) + 3) % 4));
+        } else if (m_customizeMenuIndex == 1) {
+            setBallSkin(static_cast<BallSkin>((static_cast<int>(m_ballSkin) + 3) % 4));
+        }
         return;
     }
 
@@ -150,10 +178,16 @@ void GameEngine::menuLeft() {
             case 2: // CRT
                 m_crtMode = static_cast<CrtScanlineMode>((static_cast<int>(m_crtMode) + 2) % 3);
                 break;
-            case 3: // Theme (6 themes: NeonArcade, DarkOled, Gruvbox, NeovimDefault, GameBoy, CyberpunkAmber)
+            case 3: // Theme
                 m_paletteTheme = static_cast<PaletteTheme>((static_cast<int>(m_paletteTheme) + 5) % 6);
                 break;
-            case 4: { // Audio
+            case 4: // Paddle Skin
+                setPaddleSkin(static_cast<PaddleSkin>((static_cast<int>(m_paddleSkin) + 3) % 4));
+                break;
+            case 5: // Ball Skin
+                setBallSkin(static_cast<BallSkin>((static_cast<int>(m_ballSkin) + 3) % 4));
+                break;
+            case 6: { // Audio
                 float cur = SoundManager::instance().getVolume();
                 if (SoundManager::instance().isMuted()) {
                     SoundManager::instance().setMuted(false);
@@ -164,7 +198,7 @@ void GameEngine::menuLeft() {
                 }
                 break;
             }
-            case 5: // Mouse
+            case 7: // Mouse
                 m_mouseControlEnabled = !m_mouseControlEnabled;
                 break;
             default:
@@ -177,6 +211,16 @@ void GameEngine::menuRight() {
     if (m_state == GameState::LevelSelect) {
         SoundManager::instance().play(SoundEffect::MenuChange);
         m_levelSelectIndex = (m_levelSelectIndex + 1) % m_levelManager.getTotalLevels();
+        return;
+    }
+
+    if (m_state == GameState::CustomizeSkins) {
+        SoundManager::instance().play(SoundEffect::MenuChange);
+        if (m_customizeMenuIndex == 0) {
+            setPaddleSkin(static_cast<PaddleSkin>((static_cast<int>(m_paddleSkin) + 1) % 4));
+        } else if (m_customizeMenuIndex == 1) {
+            setBallSkin(static_cast<BallSkin>((static_cast<int>(m_ballSkin) + 1) % 4));
+        }
         return;
     }
 
@@ -195,7 +239,13 @@ void GameEngine::menuRight() {
             case 3: // Theme
                 m_paletteTheme = static_cast<PaletteTheme>((static_cast<int>(m_paletteTheme) + 1) % 6);
                 break;
-            case 4: { // Audio
+            case 4: // Paddle Skin
+                setPaddleSkin(static_cast<PaddleSkin>((static_cast<int>(m_paddleSkin) + 1) % 4));
+                break;
+            case 5: // Ball Skin
+                setBallSkin(static_cast<BallSkin>((static_cast<int>(m_ballSkin) + 1) % 4));
+                break;
+            case 6: { // Audio
                 if (SoundManager::instance().isMuted()) {
                     SoundManager::instance().setMuted(false);
                     SoundManager::instance().setVolume(0.25f);
@@ -209,7 +259,7 @@ void GameEngine::menuRight() {
                 }
                 break;
             }
-            case 5: // Mouse
+            case 7: // Mouse
                 m_mouseControlEnabled = !m_mouseControlEnabled;
                 break;
             default:
@@ -235,18 +285,32 @@ void GameEngine::menuConfirm() {
                 m_levelSelectIndex = m_levelManager.getCurrentLevelIndex();
                 m_state = GameState::LevelSelect;
                 break;
-            case 2: // Options
+            case 2: // Customize Skins
+                m_previousState = GameState::MainMenu;
+                m_customizeMenuIndex = 0;
+                m_state = GameState::CustomizeSkins;
+                break;
+            case 3: // Options
                 m_previousState = GameState::MainMenu;
                 m_optionsMenuIndex = 0;
                 m_state = GameState::OptionsMenu;
                 break;
-            case 3: // Help
+            case 4: // Help
                 m_previousState = GameState::MainMenu;
                 m_state = GameState::HelpMenu;
                 break;
-            case 4: // Quit
+            case 5: // Quit
                 QCoreApplication::quit();
                 break;
+        }
+        return;
+    }
+
+    if (m_state == GameState::CustomizeSkins) {
+        if (m_customizeMenuIndex == 2) {
+            menuBack();
+        } else {
+            menuRight();
         }
         return;
     }
@@ -257,7 +321,7 @@ void GameEngine::menuConfirm() {
     }
 
     if (m_state == GameState::OptionsMenu) {
-        if (m_optionsMenuIndex == 6) { // Back
+        if (m_optionsMenuIndex == 8) { // Back
             menuBack();
         } else {
             menuRight(); // Toggle option value
@@ -300,7 +364,8 @@ void GameEngine::menuConfirm() {
 
 void GameEngine::menuBack() {
     SoundManager::instance().play(SoundEffect::MenuChange);
-    if (m_state == GameState::OptionsMenu || m_state == GameState::LevelSelect || m_state == GameState::HelpMenu) {
+    if (m_state == GameState::OptionsMenu || m_state == GameState::LevelSelect ||
+        m_state == GameState::HelpMenu || m_state == GameState::CustomizeSkins) {
         m_state = m_previousState;
     } else if (m_state == GameState::Playing) {
         m_state = GameState::Paused;
@@ -311,8 +376,6 @@ void GameEngine::menuBack() {
 }
 
 void GameEngine::handleMouseMove(float vx, float /*vy*/) {
-    // Menus do NOT track mouse hover -- no border movement, no sound on hover!
-    // Mouse movement only controls paddle during active gameplay.
     if (m_state == GameState::Ready || m_state == GameState::Playing) {
         setMouseTargetX(vx);
     }
@@ -320,15 +383,26 @@ void GameEngine::handleMouseMove(float vx, float /*vy*/) {
 
 void GameEngine::handleMouseClick(float vx, float vy) {
     if (m_state == GameState::MainMenu) {
-        for (int i = 0; i < 5; ++i) {
-            int itemY = 100 + i * 22;
+        for (int i = 0; i < 6; ++i) {
+            int itemY = 92 + i * 20;
             if (vy >= itemY - 4 && vy <= itemY + 16 && vx >= 40 && vx <= 280) {
                 m_mainMenuIndex = i;
                 menuConfirm();
                 return;
             }
         }
-        return; // Clicked outside menu items: ignore
+        return;
+    } else if (m_state == GameState::CustomizeSkins) {
+        if (vy >= 30 && vy <= 48) {
+            m_customizeMenuIndex = 0;
+            if (vx < 210) menuLeft(); else menuRight();
+        } else if (vy >= 49 && vy <= 68) {
+            m_customizeMenuIndex = 1;
+            if (vx < 210) menuLeft(); else menuRight();
+        } else if (vy >= 185 && vy <= 210) {
+            menuBack();
+        }
+        return;
     } else if (m_state == GameState::Paused) {
         for (int i = 0; i < 5; ++i) {
             int itemY = 76 + i * 20;
@@ -338,27 +412,24 @@ void GameEngine::handleMouseClick(float vx, float vy) {
                 return;
             }
         }
-        return; // Clicked outside pause buttons: ignore
+        return;
     } else if (m_state == GameState::HelpMenu) {
         menuConfirm();
     } else if (m_state == GameState::LevelSelect) {
         if (vy >= 40 && vy <= 70) {
-            // Stage select header arrows
             if (vx < 120) menuLeft();
             else if (vx > 200) menuRight();
         } else if (vy >= 180 && vy <= 204) {
-            // Launch stage button
             menuConfirm();
         } else if (vy >= 205) {
-            // Back button
             menuBack();
         }
     } else if (m_state == GameState::OptionsMenu) {
-        for (int i = 0; i < 7; ++i) {
-            int itemY = 48 + i * 22;
-            if (vy >= itemY - 4 && vy <= itemY + 17 && vx >= 20 && vx <= 300) {
+        for (int i = 0; i < 9; ++i) {
+            int itemY = 38 + i * 19;
+            if (vy >= itemY - 4 && vy <= itemY + 16 && vx >= 20 && vx <= 300) {
                 m_optionsMenuIndex = i;
-                if (i == 6) { // [ BACK TO MENU ]
+                if (i == 8) { // [ BACK TO MENU ]
                     menuBack();
                 } else {
                     if (vx < 210) {
@@ -736,37 +807,38 @@ void GameEngine::renderMainMenu() {
     m_buffer.drawRect(10, 10, VIRTUAL_WIDTH - 20, VIRTUAL_HEIGHT - 20, Colors::GridLine);
 
     // Glowing Retro Arcade Title with 3D drop shadow
-    int titleY = 32;
+    int titleY = 28;
     m_buffer.drawBitmapTextCentered(titleY + 2, "RETRO BREAKOUT", Colors::Black, 2);
     m_buffer.drawBitmapTextCentered(titleY + 1, "RETRO BREAKOUT", Colors::NeonPurple, 2);
     m_buffer.drawBitmapTextCentered(titleY, "RETRO BREAKOUT", Colors::NeonCyan, 2);
 
     // Subtitle
-    m_buffer.drawBitmapTextCentered(54, "-- PURE RASTER GRID ARCADE --", Colors::NeonYellow, 1);
+    m_buffer.drawBitmapTextCentered(50, "-- PURE RASTER GRID ARCADE --", Colors::NeonYellow, 1);
 
     // High Score badge
     char hiStr[32];
     std::snprintf(hiStr, sizeof(hiStr), "ALL-TIME HIGH: %06d", m_highScore);
-    m_buffer.drawBitmapTextCentered(70, hiStr, Colors::GrayLight, 1);
+    m_buffer.drawBitmapTextCentered(66, hiStr, Colors::GrayLight, 1);
 
     // Menu options
-    const char* options[5] = {
+    const char* options[6] = {
         (!m_balls.empty() && m_levelTime > 0.1f) ? "RESUME GAME" : "START GAME",
         "SELECT STAGE",
+        "CUSTOMIZE SKINS",
         "SETTINGS & OPTIONS",
         "HOW TO PLAY",
         "QUIT GAME"
     };
 
-    for (int i = 0; i < 5; ++i) {
-        int itemY = 100 + i * 22;
+    for (int i = 0; i < 6; ++i) {
+        int itemY = 88 + i * 20;
         bool selected = (m_mainMenuIndex == i);
 
         if (selected) {
             // Selected highlight bar
             m_buffer.fillRect(40, itemY - 3, VIRTUAL_WIDTH - 80, 14, Colors::GridLine);
             m_buffer.drawRect(40, itemY - 3, VIRTUAL_WIDTH - 80, 14, Colors::NeonGreen);
-            m_buffer.drawBitmapText(50, itemY, ">", Colors::NeonYellow, 1);
+            m_buffer.drawBitmapText(48, itemY, ">", Colors::NeonYellow, 1);
             m_buffer.drawBitmapTextCentered(itemY, options[i], Colors::White, 1);
         } else {
             m_buffer.drawBitmapTextCentered(itemY, options[i], Colors::GrayLight, 1);
@@ -787,13 +859,15 @@ void GameEngine::renderLevelSelect() {
     m_buffer.drawBitmapTextCentered(46, stageTitle, Colors::NeonCyan, 1);
 
     // Show stage name
-    const char* stageNames[4] = {
+    const char* stageNames[6] = {
         "STAGE 1: NEON HORIZON",
         "STAGE 2: ARMORED FORTRESS",
         "STAGE 3: EXPLOSIVE MINEFIELD",
-        "STAGE 4: CITADEL MATRIX"
+        "STAGE 4: CITADEL MATRIX",
+        "STAGE 5: CYBER DIAMOND",
+        "STAGE 6: SUPERNOVA CASCADE"
     };
-    const char* name = (m_levelSelectIndex < 4) ? stageNames[m_levelSelectIndex] : "CUSTOM STAGE";
+    const char* name = (m_levelSelectIndex < 6) ? stageNames[m_levelSelectIndex] : "CUSTOM STAGE";
     m_buffer.drawBitmapTextCentered(60, name, Colors::White, 1);
 
     // Render a mini preview map of the selected stage in center!
@@ -825,8 +899,12 @@ void GameEngine::renderLevelSelect() {
                 col = (c == 0 || c == cols - 1) ? Colors::BorderWall : Colors::NeonYellow;
             } else if (m_levelSelectIndex == 2) {
                 col = ((r + c) % 2 == 0) ? Colors::NeonOrange : Colors::NeonPink;
-            } else {
+            } else if (m_levelSelectIndex == 3) {
                 col = (r % 2 == 0) ? Colors::NeonYellow : Colors::NeonCyan;
+            } else if (m_levelSelectIndex == 4) {
+                col = (r == 0 || r == 5) ? Colors::NeonYellow : Colors::NeonCyan;
+            } else {
+                col = ((r + c) % 3 == 0) ? Colors::NeonOrange : Colors::NeonGreen;
             }
             m_buffer.fillRect(startPx + c * (miniBw + 2), startPy + r * (miniBh + 2), miniBw, miniBh, col);
         }
@@ -840,10 +918,94 @@ void GameEngine::renderLevelSelect() {
     m_buffer.drawBitmapTextCentered(212, "LEFT/RIGHT: STAGE   ESC: BACK", Colors::GrayMid, 1);
 }
 
+void GameEngine::renderCustomizeMenu() {
+    m_buffer.drawRect(8, 8, VIRTUAL_WIDTH - 16, VIRTUAL_HEIGHT - 16, Colors::NeonCyan);
+    m_buffer.drawBitmapTextCentered(14, "PADDLE & BALL CUSTOMIZER", Colors::NeonYellow, 1);
+    m_buffer.drawFastHLine(20, VIRTUAL_WIDTH - 20, 26, Colors::GridLine);
+
+    const char* paddleNames[4] = {
+        "< SKATEBOARD >",
+        "< CLASSIC ARCADE >",
+        "< CYBER HOVER >",
+        "< RETRO WOOD >"
+    };
+
+    const char* ballNames[4] = {
+        "< ENERGY ORB >",
+        "< PLASMA CORE >",
+        "< NEON DIAMOND >",
+        "< CYBER CUBE >"
+    };
+
+    // Item 0: Paddle Skin
+    bool sel0 = (m_customizeMenuIndex == 0);
+    int y0 = 34;
+    if (sel0) {
+        m_buffer.fillRect(16, y0 - 3, VIRTUAL_WIDTH - 32, 14, Colors::GridLine);
+        m_buffer.drawRect(16, y0 - 3, VIRTUAL_WIDTH - 32, 14, Colors::NeonCyan);
+        m_buffer.drawBitmapText(22, y0, ">", Colors::NeonYellow, 1);
+    }
+    m_buffer.drawBitmapText(32, y0, "PADDLE SKIN", sel0 ? Colors::White : Colors::GrayLight, 1);
+    m_buffer.drawBitmapText(156, y0, paddleNames[std::clamp(static_cast<int>(m_paddleSkin), 0, 3)], sel0 ? Colors::NeonGreen : Colors::NeonCyan, 1);
+
+    // Item 1: Ball Skin
+    bool sel1 = (m_customizeMenuIndex == 1);
+    int y1 = 51;
+    if (sel1) {
+        m_buffer.fillRect(16, y1 - 3, VIRTUAL_WIDTH - 32, 14, Colors::GridLine);
+        m_buffer.drawRect(16, y1 - 3, VIRTUAL_WIDTH - 32, 14, Colors::NeonCyan);
+        m_buffer.drawBitmapText(22, y1, ">", Colors::NeonYellow, 1);
+    }
+    m_buffer.drawBitmapText(32, y1, "BALL COSMETIC", sel1 ? Colors::White : Colors::GrayLight, 1);
+    m_buffer.drawBitmapText(156, y1, ballNames[std::clamp(static_cast<int>(m_ballSkin), 0, 3)], sel1 ? Colors::NeonGreen : Colors::NeonCyan, 1);
+
+    // Live Showcase Stage Box in Center (y: 68 to 182)
+    int boxX = 24;
+    int boxY = 68;
+    int boxW = VIRTUAL_WIDTH - 48;
+    int boxH = 114;
+    m_buffer.fillRect(boxX, boxY, boxW, boxH, 0xFF0A0E14);
+    m_buffer.drawRect(boxX, boxY, boxW, boxH, Colors::GridLine);
+    m_buffer.drawBitmapTextCentered(boxY + 5, "-- LIVE COSMETIC PREVIEW --", Colors::GrayMid, 1);
+
+    // Draw background retro grid lines
+    for (int gx = boxX + 16; gx < boxX + boxW - 8; gx += 24) {
+        m_buffer.drawFastVLine(gx, boxY + 18, boxY + boxH - 2, 0xFF141A24);
+    }
+
+    // Animated Preview Paddle
+    float animT = m_titleAnimTimer;
+    float prevPaddleX = (VIRTUAL_WIDTH / 2.0f) + std::sin(animT * 2.2f) * 45.0f;
+
+    Paddle dummyPaddle;
+    dummyPaddle.setSkin(m_paddleSkin);
+    dummyPaddle.setPosition(Vec2{prevPaddleX, static_cast<float>(boxY + boxH - 22)});
+    dummyPaddle.render(m_buffer);
+
+    // Animated Preview Ball bouncing over paddle
+    float bounceProgress = std::abs(std::sin(animT * 3.8f));
+    float ballAnimY = (boxY + boxH - 30.0f) - (bounceProgress * 48.0f);
+    float ballAnimX = prevPaddleX + std::cos(animT * 2.2f) * 6.0f;
+    Ball dummyBall(Vec2{ballAnimX, ballAnimY}, Vec2{0.0f, 0.0f});
+    dummyBall.setSkin(m_ballSkin);
+    dummyBall.render(m_buffer);
+
+    // Item 2: Confirm button
+    bool sel2 = (m_customizeMenuIndex == 2);
+    int y2 = 190;
+    if (sel2) {
+        m_buffer.fillRect(50, y2 - 3, VIRTUAL_WIDTH - 100, 14, Colors::GridLine);
+        m_buffer.drawRect(50, y2 - 3, VIRTUAL_WIDTH - 100, 14, Colors::NeonGreen);
+    }
+    m_buffer.drawBitmapTextCentered(y2, "[ CONFIRM & RETURN ]", sel2 ? Colors::NeonYellow : Colors::White, 1);
+
+    m_buffer.drawBitmapTextCentered(216, "LEFT/RIGHT: CYCLE   SPACE: CONFIRM", Colors::GrayMid, 1);
+}
+
 void GameEngine::renderOptionsMenu() {
     m_buffer.drawRect(8, 8, VIRTUAL_WIDTH - 16, VIRTUAL_HEIGHT - 16, Colors::NeonGreen);
-    m_buffer.drawBitmapTextCentered(18, "GAME SETTINGS & OPTIONS", Colors::NeonYellow, 1);
-    m_buffer.drawFastHLine(20, VIRTUAL_WIDTH - 20, 32, Colors::GridLine);
+    m_buffer.drawBitmapTextCentered(15, "GAME SETTINGS & OPTIONS", Colors::NeonYellow, 1);
+    m_buffer.drawFastHLine(20, VIRTUAL_WIDTH - 20, 26, Colors::GridLine);
 
     char speedBuf[32];
     std::snprintf(speedBuf, sizeof(speedBuf), "< %.2fx >", m_difficultyMultiplier);
@@ -864,6 +1026,12 @@ void GameEngine::renderOptionsMenu() {
     };
     const char* themeStr = themeNames[std::clamp(static_cast<int>(m_paletteTheme), 0, 5)];
 
+    const char* paddleNames[4] = {"< SKATEBOARD >", "< ARCADE >", "< HOVER >", "< RETRO WOOD >"};
+    const char* paddleStr = paddleNames[std::clamp(static_cast<int>(m_paddleSkin), 0, 3)];
+
+    const char* ballNames[4] = {"< ENERGY ORB >", "< PLASMA >", "< DIAMOND >", "< CYBER CUBE >"};
+    const char* ballStr = ballNames[std::clamp(static_cast<int>(m_ballSkin), 0, 3)];
+
     char audioBuf[32];
     if (SoundManager::instance().isMuted()) {
         std::snprintf(audioBuf, sizeof(audioBuf), "< MUTED >");
@@ -878,35 +1046,37 @@ void GameEngine::renderOptionsMenu() {
         const char* value;
     };
 
-    OptionItem items[7] = {
+    OptionItem items[9] = {
         {"BALL SPEED", speedBuf},
         {"START LIVES", livesBuf},
         {"CRT SCANLINES", crtStr},
         {"COLOR PALETTE", themeStr},
+        {"PADDLE SKIN", paddleStr},
+        {"BALL COSMETIC", ballStr},
         {"AUDIO VOLUME", audioBuf},
         {"MOUSE PADDLE", mouseStr},
         {"[ BACK TO MENU ]", ""}
     };
 
-    for (int i = 0; i < 7; ++i) {
-        int itemY = 48 + i * 22;
+    for (int i = 0; i < 9; ++i) {
+        int itemY = 36 + i * 19;
         bool selected = (m_optionsMenuIndex == i);
 
         if (selected) {
-            m_buffer.fillRect(20, itemY - 3, VIRTUAL_WIDTH - 40, 15, Colors::GridLine);
-            m_buffer.drawRect(20, itemY - 3, VIRTUAL_WIDTH - 40, 15, Colors::NeonCyan);
-            m_buffer.drawBitmapText(26, itemY, ">", Colors::NeonYellow, 1);
+            m_buffer.fillRect(18, itemY - 3, VIRTUAL_WIDTH - 36, 14, Colors::GridLine);
+            m_buffer.drawRect(18, itemY - 3, VIRTUAL_WIDTH - 36, 14, Colors::NeonCyan);
+            m_buffer.drawBitmapText(24, itemY, ">", Colors::NeonYellow, 1);
         }
 
-        if (i == 6) {
+        if (i == 8) {
             m_buffer.drawBitmapTextCentered(itemY, items[i].label, selected ? Colors::NeonYellow : Colors::White, 1);
         } else {
-            m_buffer.drawBitmapText(40, itemY, items[i].label, selected ? Colors::White : Colors::GrayLight, 1);
-            m_buffer.drawBitmapText(180, itemY, items[i].value, selected ? Colors::NeonCyan : Colors::GrayMid, 1);
+            m_buffer.drawBitmapText(36, itemY, items[i].label, selected ? Colors::White : Colors::GrayLight, 1);
+            m_buffer.drawBitmapText(174, itemY, items[i].value, selected ? Colors::NeonCyan : Colors::GrayMid, 1);
         }
     }
 
-    m_buffer.drawBitmapTextCentered(212, "LEFT/RIGHT: CHANGE   ESC: BACK", Colors::GrayMid, 1);
+    m_buffer.drawBitmapTextCentered(214, "LEFT/RIGHT: CHANGE   ESC: BACK", Colors::GrayMid, 1);
 }
 
 void GameEngine::renderHelpMenu() {
@@ -1076,6 +1246,13 @@ void GameEngine::render() {
 
     if (m_state == GameState::HelpMenu) {
         renderHelpMenu();
+        m_buffer.applyScanlineFilter(m_crtMode);
+        m_buffer.applyThemeFilter(m_paletteTheme);
+        return;
+    }
+
+    if (m_state == GameState::CustomizeSkins) {
+        renderCustomizeMenu();
         m_buffer.applyScanlineFilter(m_crtMode);
         m_buffer.applyThemeFilter(m_paletteTheme);
         return;

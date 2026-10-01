@@ -46,6 +46,8 @@ void Ball::launch(float angleRad) {
 void Ball::update(float dt) {
     if (!m_alive || m_stuck) return;
 
+    m_animTimer += dt;
+
     if (m_isFireball) {
         m_fireballTimer -= dt;
         if (m_fireballTimer <= 0.0f) {
@@ -163,6 +165,10 @@ void Ball::render(RasterBuffer& buffer) const {
     float trailAlpha = 0.5f;
     for (const auto& trailPos : m_trail) {
         uint32_t trailCol = m_isFireball ? Colors::NeonOrange : Colors::NeonCyan;
+        if (m_skin == BallSkin::PlasmaCore) trailCol = 0xFFFF00D4;
+        else if (m_skin == BallSkin::NeonDiamond) trailCol = 0xFF8CF8F7;
+        else if (m_skin == BallSkin::CyberCube) trailCol = 0xFF00E5FF;
+
         buffer.setPixelBlend(static_cast<int>(trailPos.x), static_cast<int>(trailPos.y), trailCol, trailAlpha);
         trailAlpha *= 0.6f;
     }
@@ -171,15 +177,45 @@ void Ball::render(RasterBuffer& buffer) const {
     int cy = static_cast<int>(m_pos.y);
     int r = static_cast<int>(m_radius);
 
-    uint32_t ballColor = m_isFireball ? Colors::NeonOrange : Colors::White;
-    uint32_t glowColor = m_isFireball ? Colors::NeonYellow : Colors::NeonCyan;
+    if (m_isFireball) {
+        // Blazing Fireball mode override
+        buffer.fillCircle(cx, cy, r, Colors::NeonOrange);
+        buffer.drawCircle(cx, cy, r, Colors::NeonYellow);
+        buffer.setPixel(cx, cy, Colors::White);
+        return;
+    }
 
-    // Circular pixel ball
-    buffer.fillCircle(cx, cy, r, ballColor);
-    buffer.drawCircle(cx, cy, r, glowColor);
-
-    // Center bright core
-    buffer.setPixel(cx, cy, Colors::White);
+    if (m_skin == BallSkin::PlasmaCore) {
+        // Plasma Orb with orbiting energy sparks
+        buffer.fillCircle(cx, cy, r, 0xFF7928CA); // Deep neon violet
+        buffer.fillCircle(cx, cy, r - 1, 0xFF00F0FF); // Cyan plasma core
+        buffer.setPixel(cx, cy, Colors::White);
+        // Orbiting sparks
+        int s1x = cx + static_cast<int>(std::round(std::cos(m_animTimer * 12.0f) * (r + 1)));
+        int s1y = cy + static_cast<int>(std::round(std::sin(m_animTimer * 12.0f) * (r + 1)));
+        buffer.setPixel(s1x, s1y, 0xFFFF00D4);
+        int s2x = cx - static_cast<int>(std::round(std::cos(m_animTimer * 12.0f) * (r + 1)));
+        int s2y = cy - static_cast<int>(std::round(std::sin(m_animTimer * 12.0f) * (r + 1)));
+        buffer.setPixel(s2x, s2y, 0xFF00FFCC);
+    } else if (m_skin == BallSkin::NeonDiamond) {
+        // 4-point rotating star diamond
+        buffer.drawFastHLine(cx - r - 1, cx + r + 1, cy, 0xFF8CF8F7);
+        buffer.drawFastVLine(cx, cy - r - 1, cy + r + 1, 0xFF8CF8F7);
+        buffer.fillRect(cx - 1, cy - 1, 3, 3, 0xFFB3F6C0);
+        buffer.setPixel(cx, cy, Colors::White);
+    } else if (m_skin == BallSkin::CyberCube) {
+        // 3D Isometric micro cube
+        buffer.fillRect(cx - 2, cy - 2, 5, 5, 0xFF003366);
+        buffer.drawFastHLine(cx - 2, cx + 2, cy - 2, 0xFF00FFFF);
+        buffer.drawFastVLine(cx - 2, cy - 2, cy + 2, 0xFF00FFFF);
+        buffer.fillRect(cx - 1, cy - 1, 3, 3, 0xFF0077EE);
+        buffer.setPixel(cx, cy, Colors::White);
+    } else {
+        // Classic Arcade Energy Orb
+        buffer.fillCircle(cx, cy, r, Colors::White);
+        buffer.drawCircle(cx, cy, r, Colors::NeonCyan);
+        buffer.setPixel(cx, cy, Colors::White);
+    }
 }
 
 } // namespace Breakout
