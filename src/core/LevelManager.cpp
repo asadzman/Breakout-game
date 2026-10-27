@@ -64,9 +64,12 @@ void LevelManager::discoverLevels(const std::string& assetsPath) {
         }
     }
 
-    // If no level files found on disk, register 6 embedded fallback levels
+    // If no level files found on disk, register 10 embedded fallback levels
     if (m_levelPaths.empty()) {
-        m_levelPaths = {"embedded://1", "embedded://2", "embedded://3", "embedded://4", "embedded://5", "embedded://6"};
+        m_levelPaths = {
+            "embedded://1", "embedded://2", "embedded://3", "embedded://4", "embedded://5",
+            "embedded://6", "embedded://7", "embedded://8", "embedded://9", "embedded://10"
+        };
     }
 }
 
@@ -197,7 +200,7 @@ void LevelManager::loadEmbeddedLevel(int index, LevelData& outLevel) {
             "...2EE2...",
             "....22...."
         };
-    } else {
+    } else if (index == 5) {
         outLevel.name = "STAGE 6: SUPERNOVA CASCADE";
         rows = {
             "E11E11E11E",
@@ -209,6 +212,58 @@ void LevelManager::loadEmbeddedLevel(int index, LevelData& outLevel) {
             "12E2112E21",
             "1221PP1221",
             "E11E11E11E"
+        };
+    } else if (index == 6) {
+        outLevel.name = "STAGE 7: VORTEX GALAXY";
+        rows = {
+            "2222222222",
+            "1........E",
+            "1.222222.1",
+            "1.2....E.1",
+            "1.2.PE.2.1",
+            "1.2.EP.2.1",
+            "1.E22222.1",
+            "E........1",
+            "1111111111"
+        };
+    } else if (index == 7) {
+        outLevel.name = "STAGE 8: RETRO INVADER";
+        rows = {
+            "..2....2..",
+            "...2..2...",
+            ".22222222.",
+            "22E1111E22",
+            "2222222222",
+            ".21P..P12.",
+            "21.1111.12",
+            "2.2....2.2",
+            ".2......2."
+        };
+    } else if (index == 8) {
+        outLevel.name = "STAGE 9: PRISM PINBALL";
+        rows = {
+            "EEEEEEEEEE",
+            ".PPPPPPPP.",
+            "2........2",
+            "22..11..22",
+            ".22.11.22.",
+            "..22EE22..",
+            "...2112...",
+            "1..2EE2..1",
+            "11......11"
+        };
+    } else {
+        outLevel.name = "STAGE 10: COSMIC PHOENIX";
+        rows = {
+            "...3223...",
+            "..31EE13..",
+            ".321PP123.",
+            "3221EE1223",
+            "22..11..22",
+            "233.11.332",
+            "3.2E..E2.3",
+            "E..2PP2..E",
+            "...1..1..."
         };
     }
 

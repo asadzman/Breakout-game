@@ -43,6 +43,7 @@ void GameEngine::loadSettings() {
     m_startingLives = settings.value("startingLives", 3).toInt();
     m_crtMode = static_cast<CrtScanlineMode>(settings.value("crtMode", static_cast<int>(CrtScanlineMode::Subtle)).toInt());
     m_paletteTheme = static_cast<PaletteTheme>(settings.value("paletteTheme", static_cast<int>(PaletteTheme::NeonArcade)).toInt());
+    m_backgroundStyle = static_cast<BackgroundStyle>(settings.value("backgroundStyle", static_cast<int>(BackgroundStyle::DynamicStage)).toInt());
     m_paddleSkin = static_cast<PaddleSkin>(settings.value("paddleSkin", static_cast<int>(PaddleSkin::Skateboard)).toInt());
     m_ballSkin = static_cast<BallSkin>(settings.value("ballSkin", static_cast<int>(BallSkin::EnergyOrb)).toInt());
     m_mouseControlEnabled = settings.value("mouseControl", true).toBool();
@@ -60,6 +61,7 @@ void GameEngine::saveSettings() {
     settings.setValue("startingLives", m_startingLives);
     settings.setValue("crtMode", static_cast<int>(m_crtMode));
     settings.setValue("paletteTheme", static_cast<int>(m_paletteTheme));
+    settings.setValue("backgroundStyle", static_cast<int>(m_backgroundStyle));
     settings.setValue("paddleSkin", static_cast<int>(m_paddleSkin));
     settings.setValue("ballSkin", static_cast<int>(m_ballSkin));
     settings.setValue("mouseControl", m_mouseControlEnabled);
@@ -235,7 +237,7 @@ void GameEngine::menuUp() {
     } else if (m_state == GameState::Paused) {
         m_pauseMenuIndex = (m_pauseMenuIndex + 4) % 5;
     } else if (m_state == GameState::OptionsMenu) {
-        m_optionsMenuIndex = (m_optionsMenuIndex + 8) % 9;
+        m_optionsMenuIndex = (m_optionsMenuIndex + 9) % 10;
     } else if (m_state == GameState::LevelSelect) {
         m_levelSelectIndex = (m_levelSelectIndex + m_levelManager.getTotalLevels() - 1) % m_levelManager.getTotalLevels();
     }
@@ -248,7 +250,7 @@ void GameEngine::menuDown() {
     } else if (m_state == GameState::Paused) {
         m_pauseMenuIndex = (m_pauseMenuIndex + 1) % 5;
     } else if (m_state == GameState::OptionsMenu) {
-        m_optionsMenuIndex = (m_optionsMenuIndex + 1) % 9;
+        m_optionsMenuIndex = (m_optionsMenuIndex + 1) % 10;
     } else if (m_state == GameState::LevelSelect) {
         m_levelSelectIndex = (m_levelSelectIndex + 1) % m_levelManager.getTotalLevels();
     }
@@ -276,13 +278,16 @@ void GameEngine::menuLeft() {
             case 3: // Theme
                 m_paletteTheme = static_cast<PaletteTheme>((static_cast<int>(m_paletteTheme) + 5) % 6);
                 break;
-            case 4: // Paddle / Board Preset
+            case 4: // Background Style
+                m_backgroundStyle = static_cast<BackgroundStyle>((static_cast<int>(m_backgroundStyle) + 5) % 6);
+                break;
+            case 5: // Paddle / Board Preset
                 setPaddleSkin(static_cast<PaddleSkin>((static_cast<int>(m_paddleSkin) + 3) % 4));
                 break;
-            case 5: // Ball Preset
+            case 6: // Ball Preset
                 setBallSkin(static_cast<BallSkin>((static_cast<int>(m_ballSkin) + 3) % 4));
                 break;
-            case 6: { // Audio
+            case 7: { // Audio
                 float cur = SoundManager::instance().getVolume();
                 if (SoundManager::instance().isMuted()) {
                     SoundManager::instance().setMuted(false);
@@ -293,7 +298,7 @@ void GameEngine::menuLeft() {
                 }
                 break;
             }
-            case 7: // Mouse
+            case 8: // Mouse
                 m_mouseControlEnabled = !m_mouseControlEnabled;
                 break;
             default:
@@ -325,13 +330,16 @@ void GameEngine::menuRight() {
             case 3: // Theme
                 m_paletteTheme = static_cast<PaletteTheme>((static_cast<int>(m_paletteTheme) + 1) % 6);
                 break;
-            case 4: // Paddle Skin
+            case 4: // Background Style
+                m_backgroundStyle = static_cast<BackgroundStyle>((static_cast<int>(m_backgroundStyle) + 1) % 6);
+                break;
+            case 5: // Paddle Skin
                 setPaddleSkin(static_cast<PaddleSkin>((static_cast<int>(m_paddleSkin) + 1) % 4));
                 break;
-            case 5: // Ball Skin
+            case 6: // Ball Skin
                 setBallSkin(static_cast<BallSkin>((static_cast<int>(m_ballSkin) + 1) % 4));
                 break;
-            case 6: { // Audio
+            case 7: { // Audio
                 if (SoundManager::instance().isMuted()) {
                     SoundManager::instance().setMuted(false);
                     SoundManager::instance().setVolume(0.25f);
@@ -345,7 +353,7 @@ void GameEngine::menuRight() {
                 }
                 break;
             }
-            case 7: // Mouse
+            case 8: // Mouse
                 m_mouseControlEnabled = !m_mouseControlEnabled;
                 break;
             default:
@@ -394,7 +402,7 @@ void GameEngine::menuConfirm() {
     }
 
     if (m_state == GameState::OptionsMenu) {
-        if (m_optionsMenuIndex == 8) { // Back
+        if (m_optionsMenuIndex == 9) { // Back
             menuBack();
         } else {
             menuRight(); // Toggle option value
@@ -487,14 +495,14 @@ void GameEngine::handleMouseClick(float vx, float vy) {
             menuBack();
         }
     } else if (m_state == GameState::OptionsMenu) {
-        for (int i = 0; i < 9; ++i) {
-            int itemY = 38 + i * 19;
-            if (vy >= itemY - 4 && vy <= itemY + 16 && vx >= 20 && vx <= 300) {
+        for (int i = 0; i < 10; ++i) {
+            int itemY = 32 + i * 17;
+            if (vy >= itemY - 3 && vy <= itemY + 14 && vx >= 18 && vx <= 302) {
                 m_optionsMenuIndex = i;
-                if (i == 8) { // [ BACK TO MENU ]
+                if (i == 9) { // [ BACK TO MENU ]
                     menuBack();
                 } else {
-                    if (vx < 210) {
+                    if (vx < 205) {
                         menuLeft();
                     } else {
                         menuRight();
@@ -888,6 +896,8 @@ void GameEngine::handleBallLost() {
 // ---------------- In-Game Screen Renderers ----------------
 
 void GameEngine::renderMainMenu() {
+    // Backdrop panel for crisp contrast over animated background
+    m_buffer.fillRect(8, 8, VIRTUAL_WIDTH - 16, VIRTUAL_HEIGHT - 16, 0xDD0A0C14);
     // Top marquee border
     m_buffer.drawRect(8, 8, VIRTUAL_WIDTH - 16, VIRTUAL_HEIGHT - 16, Colors::NeonCyan);
     m_buffer.drawRect(10, 10, VIRTUAL_WIDTH - 20, VIRTUAL_HEIGHT - 20, Colors::GridLine);
@@ -935,6 +945,7 @@ void GameEngine::renderMainMenu() {
 }
 
 void GameEngine::renderLevelSelect() {
+    m_buffer.fillRect(8, 8, VIRTUAL_WIDTH - 16, VIRTUAL_HEIGHT - 16, 0xEE0A0C14);
     m_buffer.drawRect(8, 8, VIRTUAL_WIDTH - 16, VIRTUAL_HEIGHT - 16, Colors::NeonPurple);
     m_buffer.drawBitmapTextCentered(18, "STAGE SELECT", Colors::NeonYellow, 2);
 
@@ -980,9 +991,10 @@ void GameEngine::renderLevelSelect() {
 }
 
 void GameEngine::renderOptionsMenu() {
+    m_buffer.fillRect(8, 8, VIRTUAL_WIDTH - 16, VIRTUAL_HEIGHT - 16, 0xEE0B0E17);
     m_buffer.drawRect(8, 8, VIRTUAL_WIDTH - 16, VIRTUAL_HEIGHT - 16, Colors::NeonGreen);
-    m_buffer.drawBitmapTextCentered(15, "GAME SETTINGS & OPTIONS", Colors::NeonYellow, 1);
-    m_buffer.drawFastHLine(20, VIRTUAL_WIDTH - 20, 26, Colors::GridLine);
+    m_buffer.drawBitmapTextCentered(14, "GAME SETTINGS & OPTIONS", Colors::NeonYellow, 1);
+    m_buffer.drawFastHLine(20, VIRTUAL_WIDTH - 20, 24, Colors::GridLine);
 
     char speedBuf[32];
     std::snprintf(speedBuf, sizeof(speedBuf), "< %.2fx >", m_difficultyMultiplier);
@@ -1002,6 +1014,16 @@ void GameEngine::renderOptionsMenu() {
         "< AMBER CRT >"
     };
     const char* themeStr = themeNames[std::clamp(static_cast<int>(m_paletteTheme), 0, 5)];
+
+    const char* bgNames[6] = {
+        "< DYNAMIC STAGE >",
+        "< NEON SYNTHWAVE >",
+        "< COSMIC NEBULA >",
+        "< CYBER GRID >",
+        "< AURORA GLOW >",
+        "< DEEP VOID >"
+    };
+    const char* bgStr = bgNames[std::clamp(static_cast<int>(m_backgroundStyle), 0, 5)];
 
     const char* paddleNames[4] = {"< SKATEBOARD >", "< CLASSIC >", "< CYBER HOVER >", "< RETRO WOOD >"};
     const char* paddleStr = paddleNames[std::clamp(static_cast<int>(m_paddleSkin), 0, 3)];
@@ -1023,11 +1045,12 @@ void GameEngine::renderOptionsMenu() {
         const char* value;
     };
 
-    OptionItem items[9] = {
+    OptionItem items[10] = {
         {"BALL SPEED", speedBuf},
         {"START LIVES", livesBuf},
         {"CRT SCANLINES", crtStr},
         {"COLOR PALETTE", themeStr},
+        {"BACKGROUND", bgStr},
         {"BOARD PRESET", paddleStr},
         {"BALL PRESET", ballStr},
         {"AUDIO VOLUME", audioBuf},
@@ -1035,17 +1058,17 @@ void GameEngine::renderOptionsMenu() {
         {"[ BACK TO MENU ]", ""}
     };
 
-    for (int i = 0; i < 9; ++i) {
-        int itemY = 36 + i * 19;
+    for (int i = 0; i < 10; ++i) {
+        int itemY = 31 + i * 17;
         bool selected = (m_optionsMenuIndex == i);
 
         if (selected) {
-            m_buffer.fillRect(18, itemY - 3, VIRTUAL_WIDTH - 36, 14, Colors::GridLine);
-            m_buffer.drawRect(18, itemY - 3, VIRTUAL_WIDTH - 36, 14, Colors::NeonCyan);
+            m_buffer.fillRect(18, itemY - 2, VIRTUAL_WIDTH - 36, 13, Colors::GridLine);
+            m_buffer.drawRect(18, itemY - 2, VIRTUAL_WIDTH - 36, 13, Colors::NeonCyan);
             m_buffer.drawBitmapText(24, itemY, ">", Colors::NeonYellow, 1);
         }
 
-        if (i == 8) {
+        if (i == 9) {
             m_buffer.drawBitmapTextCentered(itemY, items[i].label, selected ? Colors::NeonYellow : Colors::White, 1);
         } else {
             m_buffer.drawBitmapText(36, itemY, items[i].label, selected ? Colors::White : Colors::GrayLight, 1);
@@ -1053,10 +1076,11 @@ void GameEngine::renderOptionsMenu() {
         }
     }
 
-    m_buffer.drawBitmapTextCentered(214, "LEFT/RIGHT: CHANGE   ESC: BACK", Colors::GrayMid, 1);
+    m_buffer.drawBitmapTextCentered(212, "LEFT/RIGHT: CHANGE   ESC: BACK", Colors::GrayMid, 1);
 }
 
 void GameEngine::renderHelpMenu() {
+    m_buffer.fillRect(8, 8, VIRTUAL_WIDTH - 16, VIRTUAL_HEIGHT - 16, 0xEE0A0C14);
     m_buffer.drawRect(8, 8, VIRTUAL_WIDTH - 16, VIRTUAL_HEIGHT - 16, Colors::NeonCyan);
     m_buffer.drawBitmapTextCentered(14, "HOW TO PLAY & POWER-UPS", Colors::NeonYellow, 1);
     m_buffer.drawFastHLine(20, VIRTUAL_WIDTH - 20, 24, Colors::GridLine);
@@ -1099,6 +1123,7 @@ void GameEngine::renderHelpMenu() {
 }
 
 void GameEngine::renderAboutMenu() {
+    m_buffer.fillRect(8, 8, VIRTUAL_WIDTH - 16, VIRTUAL_HEIGHT - 16, 0xEE0A0C14);
     m_buffer.drawRect(8, 8, VIRTUAL_WIDTH - 16, VIRTUAL_HEIGHT - 16, Colors::NeonCyan);
     m_buffer.drawBitmapTextCentered(16, "ABOUT RETRO BREAKOUT", Colors::NeonYellow, 1);
     m_buffer.drawFastHLine(20, VIRTUAL_WIDTH - 20, 26, Colors::GridLine);
@@ -1224,7 +1249,8 @@ void GameEngine::renderOverlays() {
 }
 
 void GameEngine::render() {
-    m_buffer.clear(Colors::DarkBg);
+    int currentStage = (m_state == GameState::LevelSelect) ? m_levelSelectIndex : m_levelManager.getCurrentLevelIndex();
+    m_buffer.renderBackground(m_backgroundStyle, m_titleAnimTimer, currentStage);
 
     if (m_state == GameState::MainMenu) {
         renderMainMenu();

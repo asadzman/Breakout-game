@@ -23,7 +23,7 @@ constexpr float PADDLE_Y = 222.0f;
 constexpr float PADDLE_SPEED = 240.0f; // Pixels per second
 
 // Ball parameters
-constexpr float BALL_RADIUS = 3.0f;
+constexpr float BALL_RADIUS = 3.5f;
 constexpr float BALL_BASE_SPEED = 160.0f;
 constexpr float BALL_MAX_SPEED = 320.0f;
 constexpr float BALL_SPEED_INCREMENT = 3.0f; // Added per brick hit
@@ -116,6 +116,15 @@ enum class CrtScanlineMode {
     Off,
     Subtle,
     Arcade
+};
+
+enum class BackgroundStyle {
+    DynamicStage = 0, // Dynamic themes tailored to each stage
+    NeonSynthwave,    // Retro sunset gradient with horizon grid and glowing sun
+    CosmicNebula,     // Multi-colored twinkling stars and interstellar nebula
+    CyberGrid,        // Glowing cyan & magenta high-tech vector matrix
+    AuroraGlow,       // Luminous undulating emerald, cyan & violet ribbons
+    DeepVoid          // Minimalist deep dark arcade void
 };
 
 enum class PaddleSkin {

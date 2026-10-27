@@ -66,6 +66,9 @@ public:
     void setPaletteTheme(PaletteTheme theme) { m_paletteTheme = theme; }
     [[nodiscard]] PaletteTheme getPaletteTheme() const { return m_paletteTheme; }
 
+    void setBackgroundStyle(BackgroundStyle style) { m_backgroundStyle = style; }
+    [[nodiscard]] BackgroundStyle getBackgroundStyle() const { return m_backgroundStyle; }
+
     void setMouseControlEnabled(bool enabled) { m_mouseControlEnabled = enabled; }
     [[nodiscard]] bool isMouseControlEnabled() const { return m_mouseControlEnabled; }
 
@@ -158,6 +161,7 @@ private:
     bool m_mouseControlEnabled = true;
     CrtScanlineMode m_crtMode = CrtScanlineMode::Subtle;
     PaletteTheme m_paletteTheme = PaletteTheme::NeonArcade;
+    BackgroundStyle m_backgroundStyle = BackgroundStyle::DynamicStage;
     PaddleSkin m_paddleSkin = PaddleSkin::Skateboard;
     BallSkin m_ballSkin = BallSkin::EnergyOrb;
 

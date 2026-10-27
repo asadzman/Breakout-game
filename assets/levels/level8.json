@@ -1,0 +1,27 @@
+{
+  "name": "STAGE 8: RETRO INVADER",
+  "brickWidth": 28,
+  "brickHeight": 9,
+  "startX": 14,
+  "startY": 24,
+  "spacingX": 2,
+  "spacingY": 2,
+  "rows": [
+    "..2....2..",
+    "...2..2...",
+    ".22222222.",
+    "22E1111E22",
+    "2222222222",
+    ".21P..P12.",
+    "21.1111.12",
+    "2.2....2.2",
+    ".2......2."
+  ],
+  "legend": {
+    ".": "empty",
+    "1": { "type": "normal", "hp": 1, "color": "0xFF00FFCC" },
+    "2": { "type": "armored", "hp": 2, "color": "0xFFFFD600" },
+    "E": { "type": "explosive", "hp": 1, "color": "0xFFFF1744" },
+    "P": { "type": "powerup", "hp": 1, "color": "0xFFD500F9" }
+  }
+}

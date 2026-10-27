@@ -175,7 +175,7 @@ static bool testBallPhysicsDeflection() {
 static bool testLevelManager() {
     LevelManager lm;
     lm.discoverLevels("assets/levels");
-    TEST_ASSERT(lm.getTotalLevels() >= 6, "Should discover at least 6 stages");
+    TEST_ASSERT(lm.getTotalLevels() >= 10, "Should discover at least 10 stages");
 
     LevelData l1;
     bool ok = lm.peekLevel(0, l1);
@@ -213,6 +213,45 @@ static bool testPowerUpDimensions() {
     return true;
 }
 
+static bool testBackgroundStyles() {
+    RasterBuffer buf(320, 240);
+    const BackgroundStyle styles[6] = {
+        BackgroundStyle::DynamicStage,
+        BackgroundStyle::NeonSynthwave,
+        BackgroundStyle::CosmicNebula,
+        BackgroundStyle::CyberGrid,
+        BackgroundStyle::AuroraGlow,
+        BackgroundStyle::DeepVoid
+    };
+
+    for (int i = 0; i < 6; ++i) {
+        buf.renderBackground(styles[i], 1.5f, i);
+        // Verify buffer is populated (non-zero alpha)
+        TEST_ASSERT(buf.getPixel(160, 120) != 0, "Background rendering failed to write pixels");
+    }
+
+    return true;
+}
+
+static bool testRoundBall() {
+    Ball ball(Vec2(160.0f, 120.0f), Vec2(0.0f, -100.0f));
+    TEST_ASSERT(ball.getRadius() >= 3.5f, "Ball radius must be at least 3.5 for round rasterization");
+
+    RasterBuffer buf(320, 240);
+    buf.clear(Colors::Black);
+    ball.render(buf);
+
+    // Center pixel should be white or glowing core
+    TEST_ASSERT(buf.getPixel(160, 120) != Colors::Black, "Ball center must be rendered");
+    // Outer perimeter check: ensure pixel is drawn on cardinal edges
+    TEST_ASSERT(buf.getPixel(160, 120 - 3) != Colors::Black, "Ball top arc must be rendered");
+    TEST_ASSERT(buf.getPixel(160, 120 + 3) != Colors::Black, "Ball bottom arc must be rendered");
+    TEST_ASSERT(buf.getPixel(160 - 3, 120) != Colors::Black, "Ball left arc must be rendered");
+    TEST_ASSERT(buf.getPixel(160 + 3, 120) != Colors::Black, "Ball right arc must be rendered");
+
+    return true;
+}
+
 int main(int argc, char* argv[]) {
     QCoreApplication app(argc, argv);
 
@@ -229,6 +268,8 @@ int main(int argc, char* argv[]) {
     RUN_TEST(testLevelManager);
     RUN_TEST(testBrickHits);
     RUN_TEST(testPowerUpDimensions);
+    RUN_TEST(testBackgroundStyles);
+    RUN_TEST(testRoundBall);
 
     std::cout << "----------------------------------------\n";
     std::cout << "Results: " << s_testsPassed << " / " << s_testsRun << " tests passed.\n";

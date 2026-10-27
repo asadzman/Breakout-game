@@ -13,13 +13,21 @@ A modern, high-performance arcade Breakout experience engineered in **C++20** an
 
 ### Screenshots & Themes
 
-| Main Menu | Stage Select & Mini-Maps |
+| Main Menu | Stage Select (10 Stages) |
 | :---: | :---: |
 | ![Main Menu](assets/screenshots/demo_main_menu.png) | ![Stage Select](assets/screenshots/demo_stage_select.png) |
 
-| Settings & Presets | Stage 2: Neovim Green-Cyan Theme |
+| Settings (Backgrounds & Presets) | Stage 1: Round Ball & Neon Theme |
 | :---: | :---: |
-| ![Options Menu](assets/screenshots/demo_options_menu.png) | ![Neovim Palette](assets/screenshots/demo_gameplay_nvim.png) |
+| ![Options Menu](assets/screenshots/demo_options_menu.png) | ![Round Ball & Neon](assets/screenshots/demo_gameplay_neon.png) |
+
+| Stage 7: Neon Synthwave Background | Stage 8: Retro Invader Alien |
+| :---: | :---: |
+| ![Neon Synthwave](assets/screenshots/demo_bg_synthwave.png) | ![Retro Invader](assets/screenshots/demo_stage8_invader.png) |
+
+| Stage 9: Cyber Grid & Pinball Funnels | Stage 10: Cosmic Phoenix Finale |
+| :---: | :---: |
+| ![Cyber Grid](assets/screenshots/demo_bg_cybergrid.png) | ![Cosmic Phoenix](assets/screenshots/demo_stage10_phoenix.png) |
 
 ---
 
@@ -28,8 +36,14 @@ A modern, high-performance arcade Breakout experience engineered in **C++20** an
 - **Retro Raster Graphics Engine**:
   - Native **320 × 240** virtual resolution with nearest-neighbor integer scaling and aspect-ratio letterboxing.
   - Software-rendered raster primitives, particle sparks, and embedded 8×8 bitmap typography.
+  - Six vibrant background options: **Dynamic Stage**, **Neon Synthwave** (sunset horizon & perspective grid), **Cosmic Nebula** (multi-color twinkling starfield), **Cyber Grid** (scanning pulse matrix), **Aurora Glow** (undulating luminous ribbons), and **Deep Void**.
   - Six curated colorways: **Neon Arcade**, **Dark OLED**, **Gruvbox**, **Neovim** (cool green-cyan), **Game Boy**, and **Amber CRT**.
   - Configurable CRT scanline simulation.
+
+- **High-Fidelity Round Ball Geometry**:
+  - Precision subpixel spherical rasterization with smooth edge anti-aliasing and 3D specular light volume.
+  - Fixed midpoint circle algorithm in software rasterizer to eliminate low-res diamond artifacts.
+  - Presets: **Energy Orb** (round glowing sphere), **Plasma Core** (round pulsating orb with sparks), **Neon Diamond**, and **Cyber Cube**.
 
 - **Board & Ball Presets**:
   - Selectable directly inside **Settings & Options**.
@@ -57,8 +71,12 @@ A modern, high-performance arcade Breakout experience engineered in **C++20** an
   - Brick strikes ascend an 8-note musical pentatonic scale (**C5 $\to$ E6**) as combos mount.
   - Zero-latency polyphonic playback.
 
-- **6 Progressive Stages & JSON Custom Levels**:
-  - Built-in stages ranging from standard brick arrays to explosive diamond labyrinths and cascade minefields.
+- **10 Satisfying Progressive Stages & JSON Custom Levels**:
+  - Built-in campaign expanded to **10 stages** including:
+    - **Stage 7: Vortex Galaxy** - Spiral brick channels funneling into an explosive core.
+    - **Stage 8: Retro Invader** - Iconic 8-bit space invader alien with explosive ruby eyes.
+    - **Stage 9: Prism Pinball** - Pinball funnels, ceiling explosive canopy, and cascading multi-balls.
+    - **Stage 10: Cosmic Phoenix** - Grand finale boss silhouette with armored wings and explosive reactor.
   - Data-driven level loader allowing custom levels via JSON files in `assets/levels/`.
 
 ---
@@ -149,7 +167,7 @@ Breakout-game/
 ├── assets/
 │   ├── demos/                  # Recorded gameplay GIF and MP4
 │   ├── screenshots/            # Showcase images
-│   └── levels/                 # JSON level definitions (Stages 1–6)
+│   └── levels/                 # JSON level definitions (Stages 1–10)
 └── src/
     ├── main.cpp                # Entry point & headless demo generator
     ├── core/

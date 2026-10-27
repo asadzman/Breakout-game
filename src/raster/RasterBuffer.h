@@ -69,6 +69,7 @@ public:
     void drawBitmapTextCentered(int y, std::string_view text, uint32_t color, int scale = 1);
 
     // Retro post-processing filter passes
+    void renderBackground(BackgroundStyle style, float animTime, int stageIndex = 0);
     void applyScanlineFilter(CrtScanlineMode mode);
     void applyThemeFilter(PaletteTheme theme);
     void applyScreenShake(int dx, int dy);

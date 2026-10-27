@@ -1,0 +1,28 @@
+{
+  "name": "STAGE 10: COSMIC PHOENIX",
+  "brickWidth": 28,
+  "brickHeight": 9,
+  "startX": 14,
+  "startY": 24,
+  "spacingX": 2,
+  "spacingY": 2,
+  "rows": [
+    "...3223...",
+    "..31EE13..",
+    ".321PP123.",
+    "3221EE1223",
+    "22..11..22",
+    "233.11.332",
+    "3.2E..E2.3",
+    "E..2PP2..E",
+    "...1..1..."
+  ],
+  "legend": {
+    ".": "empty",
+    "1": { "type": "normal", "hp": 1, "color": "0xFF00E5FF" },
+    "2": { "type": "armored", "hp": 2, "color": "0xFFFFD600" },
+    "3": { "type": "armored", "hp": 3, "color": "0xFFFF1744" },
+    "E": { "type": "explosive", "hp": 1, "color": "0xFFFF6D00" },
+    "P": { "type": "powerup", "hp": 1, "color": "0xFFD500F9" }
+  }
+}

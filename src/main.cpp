@@ -44,6 +44,7 @@ static void generateDemoScreenshots() {
     // 4. Gameplay - Neon Arcade (Stage 1)
     {
         Breakout::GameEngine engine;
+        engine.setBallSkin(Breakout::BallSkin::EnergyOrb);
         engine.startNewGame();
         engine.actionLaunchOrShoot();
         for (int i = 0; i < 45; ++i) engine.update(1.0f / 60.0f);
@@ -69,6 +70,46 @@ static void generateDemoScreenshots() {
         for (int i = 0; i < 50; ++i) engine.update(1.0f / 60.0f);
         engine.setPaletteTheme(Breakout::PaletteTheme::Gruvbox);
         saveFrame(engine, "assets/screenshots/demo_gameplay_gruvbox.png");
+    }
+
+    // 7. Background Style: Neon Synthwave (Stage 7: Vortex Galaxy)
+    {
+        Breakout::GameEngine engine;
+        engine.setBackgroundStyle(Breakout::BackgroundStyle::NeonSynthwave);
+        engine.selectAndStartLevel(6);
+        engine.actionLaunchOrShoot();
+        for (int i = 0; i < 40; ++i) engine.update(1.0f / 60.0f);
+        saveFrame(engine, "assets/screenshots/demo_bg_synthwave.png");
+    }
+
+    // 8. Background Style: Cosmic Nebula (Stage 8: Retro Invader)
+    {
+        Breakout::GameEngine engine;
+        engine.setBackgroundStyle(Breakout::BackgroundStyle::CosmicNebula);
+        engine.selectAndStartLevel(7);
+        engine.actionLaunchOrShoot();
+        for (int i = 0; i < 40; ++i) engine.update(1.0f / 60.0f);
+        saveFrame(engine, "assets/screenshots/demo_stage8_invader.png");
+    }
+
+    // 9. Background Style: Cyber Grid (Stage 9: Prism Pinball)
+    {
+        Breakout::GameEngine engine;
+        engine.setBackgroundStyle(Breakout::BackgroundStyle::CyberGrid);
+        engine.selectAndStartLevel(8);
+        engine.actionLaunchOrShoot();
+        for (int i = 0; i < 40; ++i) engine.update(1.0f / 60.0f);
+        saveFrame(engine, "assets/screenshots/demo_bg_cybergrid.png");
+    }
+
+    // 10. Stage 10: Cosmic Phoenix Boss Stage
+    {
+        Breakout::GameEngine engine;
+        engine.setBackgroundStyle(Breakout::BackgroundStyle::AuroraGlow);
+        engine.selectAndStartLevel(9);
+        engine.actionLaunchOrShoot();
+        for (int i = 0; i < 40; ++i) engine.update(1.0f / 60.0f);
+        saveFrame(engine, "assets/screenshots/demo_stage10_phoenix.png");
     }
 
     // 7. Animated Gameplay Demo (GIF & MP4)
